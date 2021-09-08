@@ -229,13 +229,14 @@ class helics_interface:
             self._logger.info('Time requested: {} - time granted: {} '.format(r_seconds, self.c_seconds))
             return True, self.c_seconds
         else:
-
-            self.c_seconds, iteration_state = helics.helicsFederateRequestTimeIterative(
-                self._PyDSSfederate,
-                r_seconds,
-                helics.helics_iteration_request_iterate_if_needed
-            )
-
+            if self.itr == 0:
+                self.c_seconds = helics.helicsFederateRequestTime(self._PyDSSfederate, r_seconds)
+            else:
+                self.c_seconds, iteration_state = helics.helicsFederateRequestTimeIterative(
+                    self._PyDSSfederate,
+                    r_seconds,
+                    helics.helics_iteration_request_force_iteration
+                )
             self._logger.info('Time requested: {} - time granted: {} error: {} it: {}'.format(
                 r_seconds, self.c_seconds, error, self.itr))
             if error > -1 and self.itr < self._co_convergance_max_iterations - 1:
