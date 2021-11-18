@@ -13,11 +13,11 @@ class Utilidata_Interface(AbstractPostprocess):
     REQUIRED_INPUT_FIELDS_AND_DEFAULTS = {}
     IMPLEMENTATION_MODES = []
 
-    def __init__(self, project, scenario, inputs, dssInstance, dssSolver, dssObjects, dssObjectsByClass, simulationSettings, Logger):
+    def __init__(self, project, scenario, inputs, dssSolver, dssObjects, dssObjectsByClass, simulationSettings, Logger):
         """Constructor method
         """
         super(Utilidata_Interface, self).__init__(
-            project, scenario, inputs, dssInstance, dssSolver, dssObjects, dssObjectsByClass, simulationSettings, Logger
+            project, scenario, inputs, dssSolver, dssObjects, dssObjectsByClass, simulationSettings, Logger
         )
         configuration = load_data(inputs["config_file"])
         rootPath = simulationSettings['Project']['Project Path']
@@ -37,7 +37,6 @@ class Utilidata_Interface(AbstractPostprocess):
         self.metadata["ts_data"] = {}
         self.Options = {**self.REQUIRED_INPUT_FIELDS_AND_DEFAULTS, **configuration}
         self.dssSolver = dssSolver
-        self.dss = dssInstance
         self.Logger = Logger
 
         self.bufferSize = int(self.training_period * 3600 / dssSolver.GetStepSizeSec())
@@ -351,9 +350,9 @@ class Utilidata_Interface(AbstractPostprocess):
             #raise Exception(f"Error optimizing the model.\nReply from the server:\n{reply.text}")
 
     def disable_control_elements(self):
-        reply = self._dssInstance.utils.run_command("Batchedit CapControl..* enabled=false")
+        reply = dss.utils.run_command("Batchedit CapControl..* enabled=false")
         self.logger.info(f"Disabling local capacitor controls: {reply}")
-        reply = self._dssInstance.utils.run_command("Batchedit RegControl..* enabled=false")
+        reply = dss.utils.run_command("Batchedit RegControl..* enabled=false")
         self.logger.info(f"Disabling local regulator controls: {reply}")
         return
 

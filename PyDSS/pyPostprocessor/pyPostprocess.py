@@ -14,7 +14,7 @@ for file in pythonFiles:
     exec('from PyDSS.pyPostprocessor.PostprocessScripts import {}'.format(file))
     exec('POST_PROCESSES["{}"] = {}.{}'.format(file, file, file))
 
-def Create(project, scenario, ppInfo, dssInstance, dssSolver, dssObjects, dssObjectsByClass, simulationSettings, Logger):
+def Create(project, scenario, ppInfo, dssSolver, dssObjects, dssObjectsByClass, simulationSettings, Logger):
     test = None
     PostProcessorClass = None
     ScriptName = ppInfo.script
@@ -25,7 +25,6 @@ def Create(project, scenario, ppInfo, dssInstance, dssSolver, dssObjects, dssObj
         project,
         scenario,
         ppInfo,
-        dssInstance,
         dssSolver,
         dssObjects,
         dssObjectsByClass,

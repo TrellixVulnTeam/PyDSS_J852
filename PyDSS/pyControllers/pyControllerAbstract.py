@@ -3,7 +3,7 @@ import abc
 
 class ControllerAbstract(abc.ABC):
 
-    def __init__(self, controlledObj, Settings, dssInstance, ElmObjectList, dssSolver):
+    def __init__(self, controlledObj, Settings, ElmObjectList, dssSolver):
         """Abstract class CONSTRUCTOR."""
         pass
 

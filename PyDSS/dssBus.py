@@ -1,4 +1,6 @@
 
+import opendssdirect as dss
+
 from PyDSS.dssObjectBase import dssObjectBase
 
 
@@ -43,21 +45,21 @@ class dssBus(dssObjectBase):
     }
     VARIABLE_OUTPUTS_COMPLEX = ()
 
-    def __init__(self, dssInstance):
-        name = dssInstance.Bus.Name()
-        super(dssBus, self).__init__(dssInstance, name, name)
+    def __init__(self):
+        name = dss.Bus.Name()
+        super(dssBus, self).__init__(name, name)
         self._Index = None
         self.XY = None
         self._Class = 'Bus'
         #  self._Nodes is nested in a list to be consistent with dssElement._Nodes
-        self._Nodes = [dssInstance.Bus.Nodes()]
+        self._Nodes = [dss.Bus.Nodes()]
         self._NumTerminals = 1
-        self._NumConductors = len(dssInstance.Bus.Nodes())
-        self.Distance = dssInstance.Bus.Distance()
-        BusVarDict = dssInstance.Bus.__dict__
+        self._NumConductors = len(dss.Bus.Nodes())
+        self.Distance = dss.Bus.Distance()
+        BusVarDict = dss.Bus.__dict__
         for key in BusVarDict.keys():
             try:
-                self._Variables[key] = getattr(dssInstance.Bus, key)
+                self._Variables[key] = getattr(dss.Bus, key)
             except:
                 self._Variables[key] = None
         if self.GetVariable('X') is not None:
@@ -78,5 +80,5 @@ class dssBus(dssObjectBase):
         return self._Nodes[:]
 
     def SetActiveObject(self):
-        if self._dssInstance.Bus.Name() != self._Name:
-            self._dssInstance.Circuit.SetActiveBus(self._Name)
+        if dss.Bus.Name() != self._Name:
+            dss.Circuit.SetActiveBus(self._Name)

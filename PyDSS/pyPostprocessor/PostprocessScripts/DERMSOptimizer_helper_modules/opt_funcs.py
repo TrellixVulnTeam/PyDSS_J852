@@ -317,7 +317,7 @@ class DERMS:
         self.controlelem_limit = controlelem_limit
         self.controlelem_index = [sub_elem_names.index(ii) for ii in controlelem] # control branches index in the sub system (number)
 
-    def monitor(self, dss, dssObjects, PVSystem_1phase):
+    def monitor(self, dssObjects, PVSystem_1phase):
         PVpowers = []
         for pv in PVSystem_1phase["Name"].tolist():
             nPhases = dssObjects["Generators"][pv].GetValue("phases")

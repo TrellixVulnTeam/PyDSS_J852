@@ -277,6 +277,10 @@ class ControllerManager:
             settings.error_tolerance,
         )
 
+    @property
+    def solver(self):
+        return self._solver
+
     def run_controls(self):
         """Run all controls.
 

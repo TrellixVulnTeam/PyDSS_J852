@@ -1,5 +1,7 @@
 
 import abc
+
+import opendssdirect as dss
  
 from PyDSS.exceptions import InvalidParameter
 from PyDSS.value_storage import ValueByLabel, ValueByList, ValueByNumber
@@ -11,17 +13,12 @@ class dssObjectBase(abc.ABC):
     VARIABLE_OUTPUTS_BY_LIST = ()
     VARIABLE_OUTPUTS_COMPLEX = ()
 
-    def __init__(self, dssInstance, name, fullName):
+    def __init__(self, name, fullName):
         self._Name = name
         self._FullName = fullName
         self._Variables = {}
-        self._dssInstance = dssInstance
         self._Enabled = True
         self._CachedValueStorage = {}
-
-    @property
-    def dss(self):
-        return self._dssInstance
 
     @property
     def Enabled(self):
@@ -63,7 +60,7 @@ class dssObjectBase(abc.ABC):
     def GetVariable(self, VarName, convert=False):
         if VarName not in self._Variables:
             raise InvalidParameter(f'{VarName} is an invalid variable name for element {self._FullName}')
-        if self._dssInstance.Element.Name() != self._FullName:
+        if dss.Element.Name() != self._FullName:
             self.SetActiveObject()
         func = self._Variables[VarName]
         if func is None:
@@ -118,7 +115,7 @@ class dssObjectBase(abc.ABC):
         return self._Name
 
     def SetVariable(self, VarName, Value):
-        if self._dssInstance.Element.Name() != self._FullName:
+        if dss.Element.Name() != self._FullName:
             self.SetActiveObject()
         if VarName not in self._Variables:
             raise InvalidParameter(f"invalid variable name {VarName}")

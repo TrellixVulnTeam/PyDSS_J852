@@ -1,9 +1,12 @@
+import ast
+
+import opendssdirect as dss
 
 from PyDSS.dssElement import dssElement
 from PyDSS.value_storage import ValueByNumber
 from PyDSS.value_storage import ValueByList
-import ast
 from PyDSS.exceptions import InvalidParameter
+
 
 class dssTransformer(dssElement):
 
@@ -50,10 +53,9 @@ class dssTransformer(dssElement):
         'taps'
     ]
 
-    def __init__(self, dssInstance):
-        super(dssTransformer, self).__init__(dssInstance)
-        self._NumWindings = dssInstance.Transformers.NumWindings()
-        self._dssInstance = dssInstance
+    def __init__(self):
+        super(dssTransformer, self).__init__()
+        self._NumWindings = dss.Transformers.NumWindings()
 
     @property
     def NumWindings(self):

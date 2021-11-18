@@ -7,8 +7,6 @@ class FaultController(ControllerAbstract):
     :type FaultObj: class:`PyDSS.dssElement.dssElement`
     :param Settings: A dictionary that defines the settings for the faul controller.
     :type Settings: dict
-    :param dssInstance: An :class:`opendssdirect` instance
-    :type dssInstance: :class:`opendssdirect` instance
     :param ElmObjectList: Dictionary of all dssElement, dssBus and dssCircuit ojects
     :type ElmObjectList: dict
     :param dssSolver: An instance of one of the classes defined in :mod:`PyDSS.SolveMode`.
@@ -16,11 +14,11 @@ class FaultController(ControllerAbstract):
     :raises: AssertionError  if 'FaultObj' is not a wrapped OpenDSS Fault element
 
     """
-    def __init__(self, FaultObj, Settings, dssInstance, ElmObjectList, dssSolver):
+    def __init__(self, FaultObj, Settings, ElmObjectList, dssSolver):
         """Constructor method
         """
 
-        super(FaultController, self).__init__(FaultObj, Settings, dssInstance, ElmObjectList, dssSolver)
+        super(FaultController, self).__init__(FaultObj, Settings, ElmObjectList, dssSolver)
         self.P_old = 0
         self.Time = -1
         self.__Locked = False

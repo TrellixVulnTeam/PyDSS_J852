@@ -19,7 +19,6 @@ class NetworkGraph(PlotAbstract):
     def __init__(self, PlotProperties, dssBuses, dssObjectsbyClass, dssCircuit, dssSolver):
         super(NetworkGraph).__init__()
         self._settings = PlotProperties
-        self.__dssInstance = dss
         self.__dssGraph = nx.DiGraph()
         self.__CreateNodes()
         self.__CreatePDEdges()
@@ -200,27 +199,27 @@ class NetworkGraph(PlotAbstract):
         return
 
     def __CreatePCEdges(self):
-        PCElement = self.__dssInstance.Circuit.FirstPCElement()
+        PCElement = dss.Circuit.FirstPCElement()
         while PCElement:
             ElementData = {
-                'Name'             : self.__dssInstance.CktElement.Name().split('.')[1],
-                'Class'            : self.__dssInstance.CktElement.Name().split('.')[0],
-                'BusFrom'          : self.__dssInstance.CktElement.BusNames()[0].split('.')[0],
-                'PhasesFrom'       : self.__dssInstance.CktElement.BusNames()[0].split('.')[1:],
+                'Name'             : dss.CktElement.Name().split('.')[1],
+                'Class'            : dss.CktElement.Name().split('.')[0],
+                'BusFrom'          : dss.CktElement.BusNames()[0].split('.')[0],
+                'PhasesFrom'       : dss.CktElement.BusNames()[0].split('.')[1:],
                 'BusTo'            : 'Ref Ground Node',
             }
             self.__dssGraph.nodes[ElementData['BusFrom']]['ConnectedPCs'] += ' ' + ElementData['Class']
             ElementData = self.__ExtendPCElementDict(ElementData)
             self.__dssGraph.add_edge(ElementData['BusFrom'], ElementData['BusTo'], **ElementData)
-            PCElement = self.__dssInstance.Circuit.NextPCElement()
+            PCElement = dss.Circuit.NextPCElement()
         return
 
     def __ExtendPCElementDict(self, Dict):
-        NumberOfProperties = len(self.__dssInstance.Element.AllPropertyNames())
+        NumberOfProperties = len(dss.Element.AllPropertyNames())
         for i in range(NumberOfProperties):
             try:
-                PropertyName = self.__dssInstance.Properties.Name(str(i))
-                X = self.__dssInstance.Properties.Value(str(i))
+                PropertyName = dss.Properties.Name(str(i))
+                X = dss.Properties.Value(str(i))
                 if X is not None and X is not '' and PropertyName is not None and PropertyName is not '':
                     Dict[PropertyName] = X
             except:
@@ -228,59 +227,59 @@ class NetworkGraph(PlotAbstract):
         return Dict
 
     def __CreatePDEdges(self):
-        PDElement = self.__dssInstance.Circuit.FirstPDElement()
+        PDElement = dss.Circuit.FirstPDElement()
         while PDElement:
             ElementData = {
-                'Name'             : self.__dssInstance.CktElement.Name().split('.')[1],
-                'Class'            : self.__dssInstance.CktElement.Name().split('.')[0],
-                'BusFrom'          : self.__dssInstance.CktElement.BusNames()[0].split('.')[0],
-                'PhasesFrom'       : self.__dssInstance.CktElement.BusNames()[0].split('.')[1:],
-                'BusTo'            : self.__dssInstance.CktElement.BusNames()[1].split('.')[0],
-                'PhasesTo'         : self.__dssInstance.CktElement.BusNames()[1].split('.')[1:],
-                'Enabled'          : self.__dssInstance.CktElement.Enabled(),
-                'HasSwitchControl' : self.__dssInstance.CktElement.HasSwitchControl(),
-                'HasVoltControl'   : self.__dssInstance.CktElement.HasVoltControl(),
-                'GUID'             : self.__dssInstance.CktElement.GUID(),
-                'NumConductors'    : self.__dssInstance.CktElement.NumConductors(),
-                'NumControls'      : self.__dssInstance.CktElement.NumControls(),
-                'NumPhases'        : self.__dssInstance.CktElement.NumPhases(),
-                'NumTerminals'     : self.__dssInstance.CktElement.NumTerminals(),
-                'OCPDevType'       : self.__dssInstance.CktElement.NumTerminals(),
-                'IsShunt'          : self.__dssInstance.PDElements.IsShunt(),
-                'NumCustomers'     : self.__dssInstance.PDElements.NumCustomers(),
-                'ParentPDElement'  : self.__dssInstance.PDElements.ParentPDElement(),
-                'SectionID'        : self.__dssInstance.PDElements.SectionID(),
-                'TotalCustomers'   : self.__dssInstance.PDElements.TotalCustomers(),
-                'TotalMiles'       : self.__dssInstance.PDElements.TotalMiles(),
+                'Name'             : dss.CktElement.Name().split('.')[1],
+                'Class'            : dss.CktElement.Name().split('.')[0],
+                'BusFrom'          : dss.CktElement.BusNames()[0].split('.')[0],
+                'PhasesFrom'       : dss.CktElement.BusNames()[0].split('.')[1:],
+                'BusTo'            : dss.CktElement.BusNames()[1].split('.')[0],
+                'PhasesTo'         : dss.CktElement.BusNames()[1].split('.')[1:],
+                'Enabled'          : dss.CktElement.Enabled(),
+                'HasSwitchControl' : dss.CktElement.HasSwitchControl(),
+                'HasVoltControl'   : dss.CktElement.HasVoltControl(),
+                'GUID'             : dss.CktElement.GUID(),
+                'NumConductors'    : dss.CktElement.NumConductors(),
+                'NumControls'      : dss.CktElement.NumControls(),
+                'NumPhases'        : dss.CktElement.NumPhases(),
+                'NumTerminals'     : dss.CktElement.NumTerminals(),
+                'OCPDevType'       : dss.CktElement.NumTerminals(),
+                'IsShunt'          : dss.PDElements.IsShunt(),
+                'NumCustomers'     : dss.PDElements.NumCustomers(),
+                'ParentPDElement'  : dss.PDElements.ParentPDElement(),
+                'SectionID'        : dss.PDElements.SectionID(),
+                'TotalCustomers'   : dss.PDElements.TotalCustomers(),
+                'TotalMiles'       : dss.PDElements.TotalMiles(),
             }
             self.__dssGraph.nodes[ElementData['BusFrom']]['ConnectedPDs'] += ' ' + ElementData['Class']
             self.__dssGraph.nodes[ElementData['BusTo']]['ConnectedPDs'] += ' ' + ElementData['Class']
             self.__dssGraph.add_edge(ElementData['BusFrom'], ElementData['BusTo'], **ElementData)
-            PDElement = self.__dssInstance.Circuit.NextPDElement()
+            PDElement = dss.Circuit.NextPDElement()
         return
 
     def __CreateNodes(self):
-        Buses = self.__dssInstance.Circuit.AllBusNames()
+        Buses = dss.Circuit.AllBusNames()
         BusData = {}
         for Bus in Buses:
-            self.__dssInstance.Circuit.SetActiveBus(Bus)
+            dss.Circuit.SetActiveBus(Bus)
             BusData = {
-                'Name'          : self.__dssInstance.Bus.Name(),
-                'X'             : self.__dssInstance.Bus.X(),
-                'Y'             : self.__dssInstance.Bus.Y(),
-                'kVBase'        : self.__dssInstance.Bus.kVBase(),
-                'Zsc0'          : self.__dssInstance.Bus.Zsc0(),
-                'Zsc1'          : self.__dssInstance.Bus.Zsc1(),
-                'TotalMiles'    : self.__dssInstance.Bus.TotalMiles(),
-                'SectionID'     : self.__dssInstance.Bus.SectionID(),
-                'Nodes'         : self.__dssInstance.Bus.Nodes(),
-                'NumNodes'      : self.__dssInstance.Bus.NumNodes(),
-                'N_Customers'   : self.__dssInstance.Bus.N_Customers(),
-                'Distance'      : self.__dssInstance.Bus.Distance(),
+                'Name'          : dss.Bus.Name(),
+                'X'             : dss.Bus.X(),
+                'Y'             : dss.Bus.Y(),
+                'kVBase'        : dss.Bus.kVBase(),
+                'Zsc0'          : dss.Bus.Zsc0(),
+                'Zsc1'          : dss.Bus.Zsc1(),
+                'TotalMiles'    : dss.Bus.TotalMiles(),
+                'SectionID'     : dss.Bus.SectionID(),
+                'Nodes'         : dss.Bus.Nodes(),
+                'NumNodes'      : dss.Bus.NumNodes(),
+                'N_Customers'   : dss.Bus.N_Customers(),
+                'Distance'      : dss.Bus.Distance(),
                 'ConnectedPDs'  : '',
                 'ConnectedPCs'  : '',
             }
-            self.__dssGraph.add_node(self.__dssInstance.Bus.Name(), **BusData)
+            self.__dssGraph.add_node(dss.Bus.Name(), **BusData)
 
         BusData['X'] = 0
         BusData['Y'] = 0

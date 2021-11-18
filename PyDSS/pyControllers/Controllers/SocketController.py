@@ -9,8 +9,6 @@ class SocketController(ControllerAbstract):
             :type FaultObj: class:`PyDSS.dssElement.dssElement`
             :param Settings: A dictionary that defines the settings for the PvController.
             :type Settings: dict
-            :param dssInstance: An :class:`opendssdirect` instance
-            :type dssInstance: :class:`opendssdirect`
             :param ElmObjectList: Dictionary of all dssElement, dssBus and dssCircuit objects
             :type ElmObjectList: dict
             :param dssSolver: An instance of one of the classed defined in :mod:`PyDSS.SolveMode`.
@@ -19,8 +17,8 @@ class SocketController(ControllerAbstract):
 
     """
 
-    def __init__(self, ElmObject, Settings, dssInstance, ElmObjectList,dssSolver):
-        super(SocketController, self).__init__(ElmObject, Settings, dssInstance, ElmObjectList, dssSolver)
+    def __init__(self, ElmObject, Settings, ElmObjectList,dssSolver):
+        super(SocketController).__init__(ElmObject, Settings, ElmObjectList, dssSolver)
         self.Time = -1
         self.__ControlledElm = ElmObject
         Class, Name = self.__ControlledElm.GetInfo()

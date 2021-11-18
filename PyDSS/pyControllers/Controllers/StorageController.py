@@ -1,3 +1,5 @@
+import opendssdirect as dss
+
 from  PyDSS.pyControllers.pyControllerAbstract import ControllerAbstract
 import calendar
 import math
@@ -10,8 +12,6 @@ class StorageController(ControllerAbstract):
             :type FaultObj: class:`PyDSS.dssElement.dssElement`
             :param Settings: A dictionary that defines the settings for the PvController.
             :type Settings: dict
-            :param dssInstance: An :class:`opendssdirect` instance
-            :type dssInstance: :class:`opendssdirect`
             :param ElmObjectList: Dictionary of all dssElement, dssBus and dssCircuit objects
             :type ElmObjectList: dict
             :param dssSolver: An instance of one of the classed defined in :mod:`PyDSS.SolveMode`.
@@ -19,9 +19,9 @@ class StorageController(ControllerAbstract):
             :raises: AssertionError if 'StorageObj' is not a wrapped OpenDSS Storage element
 
     """
-    def __init__(self, StorageObj, Settings, dssInstance, ElmObjectList, dssSolver):
+    def __init__(self, StorageObj, Settings, ElmObjectList, dssSolver):
         self.Time = -1
-        super(StorageController, self).__init__(StorageObj, Settings, dssInstance, ElmObjectList, dssSolver)
+        super(StorageController, self).__init__(StorageObj, Settings, ElmObjectList, dssSolver)
 
         self.__ControlledElm = StorageObj
         self.ceClass, self.ceName = self.__ControlledElm.GetInfo()
@@ -56,7 +56,6 @@ class StorageController(ControllerAbstract):
         self.__b = Settings['beta']
         self.__ElmObjectList = ElmObjectList
         self.__ControlledElm = StorageObj
-        self.__dssInstance = dssInstance
         self.__dssSolver = dssSolver
         self.__Settings = Settings
 
@@ -123,7 +122,7 @@ class StorageController(ControllerAbstract):
         isTOU = self.__parseRatePlan(tarrif)
         Pbatt = float(self.__ControlledElm.GetParameter('kw'))
         if self.__Settings['PowerMeaElem'] == 'Total':
-            Sin = self.__dssInstance.Circuit.TotalPower()
+            Sin = dss.Circuit.TotalPower()
             Pin = -sum(Sin[0:5:2])
         else:
             Sin = self.__ElmObjectList[self.__Settings['PowerMeaElem']].GetVariable('Powers')
@@ -168,7 +167,7 @@ class StorageController(ControllerAbstract):
         isTOU = self.__parseRatePlan(tarrif)
         Pbatt = float(self.__ControlledElm.GetParameter('kw'))
         if self.__Settings['PowerMeaElem'] == 'Total':
-            Sin = self.__dssInstance.Circuit.TotalPower()
+            Sin = dss.Circuit.TotalPower()
             Pin = -sum(Sin[0:5:2])
         else:
             Sin = self.__ElmObjectList[self.__Settings['PowerMeaElem']].GetVariable('Powers')
@@ -218,8 +217,8 @@ class StorageController(ControllerAbstract):
         TotalSeconds = 24*60*60*Days
         TimeStepPerSample = int(TotalSeconds / LenSchedule)
 
-        CurrentTime = int(self.__dssInstance.Solution.Hour()) * 60 * 60 + \
-                      int(self.__dssInstance.Solution.Seconds())
+        CurrentTime = int(dss.Solution.Hour()) * 60 * 60 + \
+                      int(dss.Solution.Seconds())
 
         Index = int(CurrentTime / TimeStepPerSample)
         Pout = P_profile[Index]
@@ -245,8 +244,8 @@ class StorageController(ControllerAbstract):
         perIdle = float(self.__ControlledElm.GetParameter('%IdlingkW'))
         effDchg = float(self.__ControlledElm.GetParameter('%EffDischarge'))
 
-        Minutes = int(self.__dssInstance.Solution.Seconds() / 60)
-        Hour = self.__dssInstance.Solution.Hour() % 24
+        Minutes = int(dss.Solution.Seconds() / 60)
+        Hour = dss.Solution.Hour() % 24
 
         if sTime.hour < eTime.hour:
             Twindow = ((eTime.hour * 60 + eTime.minute) - (sTime.hour * 60 + sTime.minute)) / 60
@@ -276,7 +275,7 @@ class StorageController(ControllerAbstract):
             Error = 0
         else:
             if self.__Settings['PowerMeaElem'] == 'Total':
-                Sin = self.__dssInstance.Circuit.TotalPower()
+                Sin = dss.Circuit.TotalPower()
                 Pin = -sum(Sin[0:5:2])
             else:
                 Sin = self.__ElmObjectList[self.__Settings['PowerMeaElem']].GetVariable('Powers')
@@ -312,7 +311,7 @@ class StorageController(ControllerAbstract):
         IdlingkWPercent = float(self.__ControlledElm.GetParameter('%IdlingkW'))
         IdlingkW = -IdlingkWPercent/100*self.__Prated
         if self.__Settings['PowerMeaElem'] == 'Total':
-            Sin = self.__dssInstance.Circuit.TotalPower()
+            Sin = dss.Circuit.TotalPower()
             Pin = -sum(Sin[0:5:2])
         else:
             Sin = self.__ElmObjectList[self.__Settings['PowerMeaElem']].GetVariable('Powers')
@@ -368,8 +367,8 @@ class StorageController(ControllerAbstract):
         HrD = int(HrDischarge)
         MnD = int((HrDischarge - HrD) * 60)
 
-        Minutes = int(self.__dssInstance.Solution.Seconds()/60)
-        Hour = self.__dssInstance.Solution.Hour() % 24
+        Minutes = int(dss.Solution.Seconds()/60)
+        Hour = dss.Solution.Hour() % 24
         if Hour == HrC and Minutes == MnC:
             self.__ControlledElm.SetParameter('State', 'CHARGING')
             self.__ControlledElm.SetParameter('%charge', str(rateCharge))
@@ -388,7 +387,7 @@ class StorageController(ControllerAbstract):
             self.__PinOld = self.__Pin
 
         if self.__Settings['PowerMeaElem'] == 'Total':
-            Sin = self.__dssInstance.Circuit.TotalPower()
+            Sin = dss.Circuit.TotalPower()
             Pin = -sum(Sin[0:5:2])
         else:
             Sin = self.__ElmObjectList[self.__Settings['PowerMeaElem']].GetVariable('Powers')

@@ -21,7 +21,7 @@ import scipy.spatial.distance as ssd
 from sklearn.cluster import AgglomerativeClustering
 import matplotlib.image as mpimg
 from PyDSS.pyPostprocessor.PostprocessScripts.postprocess_thermal_upgrades import postprocess_thermal_upgrades
-from PyDSS.utils.utils import iter_elements, check_redirect
+from PyDSS.utils.dss_utils import iter_elements, check_redirect
 plt.rcParams.update({'font.size': 14})
 
 # For an overloaded line if a sensible close enough line code is available then simply change the line code
@@ -65,16 +65,15 @@ class AutomatedThermalUpgrade(AbstractPostprocess):
         "upgrade_library_path",
     )
 
-    def __init__(self, project, scenario, inputs, dssInstance, dssSolver, dssObjects, dssObjectsByClass, simulationSettings, Logger):
+    def __init__(self, project, scenario, inputs, dssSolver, dssObjects, dssObjectsByClass, simulationSettings, Logger):
         """Constructor method
         """
-        super(AutomatedThermalUpgrade, self).__init__(project, scenario, inputs, dssInstance, dssSolver, dssObjects, dssObjectsByClass, simulationSettings, Logger)
+        super(AutomatedThermalUpgrade, self).__init__(project, scenario, inputs, dssSolver, dssObjects, dssObjectsByClass, simulationSettings, Logger)
         self._simulation = None
         self._step = None
         self.config["units key"] = ["mi", "kft", "km", "m", "Ft", "in", "cm"]  # Units key for lines taken from OpenDSS
         self.config["project_dss_files_path"] = project.dss_files_path
 
-        dss = dssInstance
         self.dssSolver = dssSolver
 
         if simulationSettings.project.simulation_type != SimulationType.SNAPSHOT:

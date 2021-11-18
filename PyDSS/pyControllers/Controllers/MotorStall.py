@@ -16,8 +16,6 @@ class MotorStall(ControllerAbstract):
                 :type FaultObj: class:`PyDSS.dssElement.dssElement`
                 :param Settings: A dictionary that defines the settings for the PvController.
                 :type Settings: dict
-                :param dssInstance: An :class:`opendssdirect` instance
-                :type dssInstance: :class:`opendssdirect`
                 :param ElmObjectList: Dictionary of all dssElement, dssBus and dssCircuit objects
                 :type ElmObjectList: dict
                 :param dssSolver: An instance of one of the classed defined in :mod:`PyDSS.SolveMode`.
@@ -27,8 +25,8 @@ class MotorStall(ControllerAbstract):
         """
 
 
-    def __init__(self, MotorObj, Settings, dssInstance, ElmObjectList, dssSolver):
-        super(MotorStall, self).__init__(MotorObj, Settings, dssInstance, ElmObjectList, dssSolver)
+    def __init__(self, MotorObj, Settings, ElmObjectList, dssSolver):
+        super(MotorStall, self).__init__(MotorObj, Settings, ElmObjectList, dssSolver)
         self._class, self._name = MotorObj.GetInfo()
         self.name = "Controller-{}-{}".format(self._class, self._name)
         self._ControlledElm = MotorObj

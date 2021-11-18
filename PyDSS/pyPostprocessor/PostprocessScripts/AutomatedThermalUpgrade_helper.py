@@ -7,8 +7,6 @@ class AutomatedThermalUpgrade_helper(AbstractPostprocess):
     :type FaultObj: class:`PyDSS.dssElement.dssElement`
     :param Settings: A dictionary that defines the settings for the faul controller.
     :type Settings: dict
-    :param dssInstance: An :class:`opendssdirect` instance
-    :type dssInstance: :class:`opendssdirect` instance
     :param ElmObjectList: Dictionary of all dssElement, dssBus and dssCircuit ojects
     :type ElmObjectList: dict
     :param dssSolver: An instance of one of the classes defined in :mod:`PyDSS.SolveMode`.
@@ -16,12 +14,11 @@ class AutomatedThermalUpgrade_helper(AbstractPostprocess):
     :raises: AssertionError  if 'FaultObj' is not a wrapped OpenDSS Fault element
 
     """
-    def __init__(self, dssInstance, dssSolver, dssObjects, dssObjectsByClass, simulationSettings):
+    def __init__(self, dssSolver, dssObjects, dssObjectsByClass, simulationSettings):
         """Constructor method
         """
         self.__settings = simulationSettings
         super(AutomatedThermalUpgrade_helper).__init__()
-        self.__dssinstance = dssInstance
         return
 
     def run(self, step, stepMax, simulation=None):

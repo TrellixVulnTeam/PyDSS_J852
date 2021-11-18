@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from PyDSS.common import SimulationType
 from PyDSS.simulation_input_models import SimulationSettingsModel
 from PyDSS.pyContrReader import read_controller_settings_from_registry
@@ -43,11 +45,7 @@ CONTROLLER_PRIORITIES = 3
 
 class OpenDSS:
     def __init__(self, settings: SimulationSettingsModel):
-        self._dssInstance = dss
         self._TempResultList = []
-        self._dssBuses = {}
-        self._dssObjects = {}
-        self._dssObjectsByClass = {}
         self._DelFlag = 0
         self._pyPlotObjects = {}
         self.BokehSessionID = None
@@ -87,7 +85,7 @@ class OpenDSS:
         LoggerTag = pyLogger.getLoggerTag(settings)
         self._Logger = logging.getLogger(__name__)
         self._reportsLogger = pyLogger.getReportLogger(LoggerTag, self._dssPath["Log"], settings.logging)
-        self._Logger.info('An instance of OpenDSS version ' + self._dssInstance.__version__ + ' has been created.')
+        self._Logger.info('An instance of OpenDSS version ' + dss.__version__ + ' has been created.')
 
         for key, path in self._dssPath.items():
             assert (os.path.exists(path)), '{} path: {} does not exist!'.format(key, path)
@@ -107,16 +105,16 @@ class OpenDSS:
             with Timer(self._stats, "SetSnapshotTimePoint"):
                 self._SetSnapshotTimePoint(active_scenario)
 
-        self._dssCircuit = self._dssInstance.Circuit
-        self._dssElement = self._dssInstance.Element
-        self._dssBus = self._dssInstance.Bus
-        self._dssClass = self._dssInstance.ActiveClass
+        self._dssCircuit = dss.Circuit
+        self._dssElement = dss.Element
+        self._dssBus = dss.Bus
+        self._dssClass = dss.ActiveClass
         self._dssCommand = run_command
-        self._dssSolution = self._dssInstance.Solution
-        self._dssSolver = SolveMode.GetSolver(settings=settings, dssInstance=self._dssInstance)
-        self._Modifier = Modifier(self._dssInstance, run_command, settings)
-        self._UpdateDictionary()
-        self._CreateBusObjects()
+        self._dssSolution = dss.Solution
+        self._dssSolver = SolveMode.GetSolver(settings=settings)
+        self._Modifier = Modifier(run_command, settings)
+        self._dssBuses = self.CreateBusObjects()
+        self._dssObjects, self._dssObjectsByClass = self.CreateDssObjects(self._dssBuses)
         self._dssSolver.reSolve()
 
         if settings.profiles.use_profile_manager:
@@ -127,11 +125,11 @@ class OpenDSS:
             profileSettings = self._settings.profiles.settings
             profileSettings["objects"] = self._dssObjects
             self.profileStore = ProfileInterface.Create(
-                self._dssInstance, self._dssSolver, self._settings, self._Logger, **profileSettings
+                dss, self._dssSolver, self._settings, self._Logger, **profileSettings
             )
 
         self.ResultContainer = ResultData(settings, self._dssPath,  self._dssObjects, self._dssObjectsByClass,
-                                          self._dssBuses, self._dssSolver, self._dssCommand, self._dssInstance,
+                                          self._dssBuses, self._dssSolver, self._dssCommand, dss,
                                           self._stats)
 
         if settings.project.use_controller_registry:
@@ -160,8 +158,8 @@ class OpenDSS:
         return
 
     def _CompileModel(self):
-        self._dssInstance.Basic.ClearAll()
-        self._dssInstance.utils.run_command('Log=NO')
+        dss.Basic.ClearAll()
+        dss.utils.run_command('Log=NO')
         run_command('Clear')
         self._Logger.info('Loading OpenDSS model')
         reply = ""
@@ -197,8 +195,7 @@ class OpenDSS:
         self._pyControls_types = {}
         for ControllerType, ElementsDict in ControllerDict.items():
             for ElmName, SettingsDict in ElementsDict.items():
-                Controller = pyControllers.pyController.Create(ElmName, ControllerType, SettingsDict, self._dssObjects,
-                                                  self._dssInstance, self._dssSolver)
+                Controller = pyControllers.pyController.Create(ElmName, ControllerType, SettingsDict, self._dssObjects, self._dssSolver)
                 if Controller != -1:
                     controller_name = 'Controller.' + ElmName
                     self._pyControls[controller_name] = Controller
@@ -268,10 +265,10 @@ class OpenDSS:
         _pyControls_types = set(self._pyControls_types.values())
 
         for class_name in _pyControls_types:
-            self._dssInstance.Basic.SetActiveClass(class_name)
-            elm = self._dssInstance.ActiveClass.First()
+            dss.Basic.SetActiveClass(class_name)
+            elm = dss.ActiveClass.First()
             while elm:
-                element_name = self._dssInstance.CktElement.Name()
+                element_name = dss.CktElement.Name()
                 controller_name = 'Controller.' + element_name
                 if controller_name in self._pyControls:
                     controller = self._pyControls[controller_name]
@@ -291,53 +288,56 @@ class OpenDSS:
                             }
                             json_object = json.dumps(errorTag)
                             self._reportsLogger.warning(json_object)
-                elm = self._dssInstance.ActiveClass.Next()
+                elm = dss.ActiveClass.Next()
         return maxError < self._settings.project.error_tolerance, maxError
 
-    def _CreateBusObjects(self):
-        BusNames = self._dssCircuit.AllBusNames()
-        self._dssInstance.run_command('New  Fault.DEFAULT Bus1={} enabled=no r=0.01'.format(BusNames[0]))
+    @staticmethod
+    def CreateBusObjects():
+        dssBuses = {}
+        BusNames = dss.Circuit.AllBusNames()
+        dss.run_command('New  Fault.DEFAULT Bus1={} enabled=no r=0.01'.format(BusNames[0]))
         for BusName in BusNames:
-            self._dssCircuit.SetActiveBus(BusName)
-            self._dssBuses[BusName] = dssBus(self._dssInstance)
-        return
+            dss.Circuit.SetActiveBus(BusName)
+            dssBuses[BusName] = dssBus()
+        return dssBuses
 
-    def _UpdateDictionary(self):
+    @staticmethod
+    def CreateDssObjects(dssBuses):
+        dssObjects = {}
+        dssObjectsByClass = defaultdict(dict)
+
         InvalidSelection = ['Settings', 'ActiveClass', 'dss', 'utils', 'PDElements', 'XYCurves', 'Bus', 'Properties']
         # TODO: this causes a segmentation fault. Aadil says it may not be needed.
         #self._dssObjectsByClass={'LoadShape': self._GetRelaventObjectDict('LoadShape')}
 
-        for ElmName in self._dssInstance.Circuit.AllElementNames():
+        for ElmName in dss.Circuit.AllElementNames():
             Class, Name =  ElmName.split('.', 1)
-            if Class + 's' not in self._dssObjectsByClass:
-                self._dssObjectsByClass[Class + 's'] = {}
-            self._dssInstance.Circuit.SetActiveElement(ElmName)
-            self._dssObjectsByClass[Class + 's'][ElmName] = create_dss_element(Class, Name, self._dssInstance)
-            self._dssObjects[ElmName] = self._dssObjectsByClass[Class + 's'][ElmName]
+            ClassName = Class + 's'
+            dss.Circuit.SetActiveElement(ElmName)
+            dssObjectsByClass[ClassName][ElmName] = create_dss_element(Class, Name)
+            dssObjects[ElmName] = dssObjectsByClass[ClassName][ElmName]
 
-        for ObjName in self._dssObjects.keys():
-            Class = ObjName.split('.')[0] + 's'
-            if Class not in self._dssObjectsByClass:
-                self._dssObjectsByClass[Class] = {}
-            if  ObjName not in self._dssObjectsByClass[Class]:
-                self._dssObjectsByClass[Class][ObjName] = self._dssObjects[ObjName]
+        for ObjName in dssObjects.keys():
+            ClassName = ObjName.split('.')[0] + 's'
+            if ObjName not in dssObjectsByClass[Class]:
+                dssObjectsByClass[Class][ObjName] = dssObjects[ObjName]
 
-        self._dssObjects['Circuit.' + self._dssCircuit.Name()] = dssCircuit(self._dssInstance)
-        self._dssObjectsByClass['Circuits'] = {
-            'Circuit.' + self._dssCircuit.Name(): self._dssObjects['Circuit.' + self._dssCircuit.Name()]
+        dssObjects['Circuit.' + dss.Circuit.Name()] = dssCircuit()
+        dssObjectsByClass['Circuits'] = {
+            'Circuit.' + dss.Circuit.Name(): dssObjects['Circuit.' + dss.Circuit.Name()]
         }
-        self._dssObjectsByClass['Buses'] = self._dssBuses
+        dssObjectsByClass['Buses'] = dssBuses
 
-        return
+        return dssObjects, dssObjectsByClass
 
     def _GetRelaventObjectDict(self, key):
         ObjectList = {}
-        ElmCollection = getattr(self._dssInstance, key)
+        ElmCollection = getattr(dss, key)
         Elem = ElmCollection.First()
         while Elem:
-            FullName = self._dssInstance.Element.Name()
+            FullName = dss.Element.Name()
             Class, Name =  FullName.split('.', 1)
-            ObjectList[FullName] = create_dss_element(Class, Name, self._dssInstance)
+            ObjectList[FullName] = create_dss_element(Class, Name)
             Elem = ElmCollection.Next()
         return ObjectList
 
@@ -463,7 +463,6 @@ class OpenDSS:
                 project,
                 scenario,
                 ppInfo,
-                self._dssInstance,
                 self._dssSolver,
                 self._dssObjects,
                 self._dssObjectsByClass,

@@ -1,3 +1,5 @@
+import opendssdirect as dss
+
 import PyDSS.dssElement as dE
 from PyDSS.pyLogger import getLoggerTag
 import logging
@@ -17,10 +19,9 @@ class Modifier():
         'Storage'  : Storge_defaultDict,
      }
 
-    def __init__(self, dss, run_command, SimulationSettings):
+    def __init__(self, run_command, SimulationSettings):
         LoggerTag = getLoggerTag(SimulationSettings)
         self.pyLogger = logging.getLogger(LoggerTag)
-        self.__dssInstance = dss
         self.__dssCircuit = dss.Circuit
         self.__dssElement = dss.Element
         self.__dssBus = dss.Bus
@@ -53,7 +54,7 @@ class Modifier():
                 Cmd += tCMD
         self.pyLogger.info('Added -> ' + Cmd)
         self.__dssCommand(Cmd)
-        return dE.dssElement(self.__dssInstance)
+        return dE.dssElement(dss)
 
     def Edit_Element(self, Class, Name, Properties):
         Cmd = 'Edit ' + Class + '.' + Name
@@ -66,11 +67,11 @@ class Modifier():
         return
 
     def Edit_Elements(self, Class, Property=None, Value=None):
-        self.__dssInstance.Circuit.SetActiveClass(Class)
-        Element = self.__dssInstance.ActiveClass.First()
+        dss.Circuit.SetActiveClass(Class)
+        Element = dss.ActiveClass.First()
         while Element:
-            ElmName = self.__dssInstance.ActiveClass.Name()
-            self.__dssInstance.utils.run_command(Class + '.' + ElmName + '.' + Property + ' = ' + str(Value))
-            Element = self.__dssInstance.ActiveClass.Next()
+            ElmName = dss.ActiveClass.Name()
+            dss.utils.run_command(Class + '.' + ElmName + '.' + Property + ' = ' + str(Value))
+            Element = dss.ActiveClass.Next()
 
 

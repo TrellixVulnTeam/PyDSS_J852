@@ -13,8 +13,8 @@ class HybridController(ControllerAbstract):
     __vDisconnected = False
     __pDisconnected = False
 
-    def __init__(self, PvObj, Settings, dssInstance, ElmObjectList, dssSolver):
-        super(HybridController).__init__(PvObj, Settings, dssInstance, ElmObjectList, dssSolver)
+    def __init__(self, PvObj, Settings, ElmObjectList, dssSolver):
+        super(HybridController).__init__(PvObj, Settings, ElmObjectList, dssSolver)
         self.__ElmObjectList = ElmObjectList
         self.ControlDict = {
             'None'           : lambda: 0,
@@ -34,7 +34,6 @@ class HybridController(ControllerAbstract):
             self.Phase = None
         self.__ElmObjectList = ElmObjectList
         self.__ControlledElm = PvObj
-        self.__dssInstance = dssInstance
         self.__dssSolver = dssSolver
         self.__Settings = Settings
 

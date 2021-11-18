@@ -4,7 +4,7 @@ from scipy.sparse import lil_matrix
 import scipy.sparse.linalg as sp
 import scipy.sparse as sparse
 from scipy import stats
-import PyDSS.dssInstance as dI
+import opendssdirect as dss
 import pandas as pd
 from math import *
 import numpy as np
@@ -35,16 +35,15 @@ class DERMSOptimizer(AbstractPostprocess):
 
     IMPLEMENTATION_MODES = ["Continuous", "Voltage triggered", "Time triggered", "Off"]
 
-    def __init__(self, project, scenario, inputs, dssInstance, dssSolver, dssObjects, dssObjectsByClass, simulationSettings, Logger):
+    def __init__(self, project, scenario, inputs, dssSolver, dssObjects, dssObjectsByClass, simulationSettings, Logger):
         """Constructor method
         """
-        super(DERMSOptimizer, self).__init__(project, scenario, inputs, dssInstance, dssSolver, dssObjects, dssObjectsByClass, simulationSettings, Logger)
+        super(DERMSOptimizer, self).__init__(project, scenario, inputs, dssSolver, dssObjects, dssObjectsByClass, simulationSettings, Logger)
         self.Options = {**self.REQUIRED_INPUT_FIELDS_AND_DEFAULTS, **inputs}
         self.Settings = simulationSettings
         self.Objects = dssObjectsByClass
 
         self.dssSolver = dssSolver
-        self.dss = dssInstance
         self.Logger = Logger
         self.logger.info('Creating DERMS Optimizer module')
 
@@ -72,8 +71,8 @@ class DERMSOptimizer(AbstractPostprocess):
         )
 
     def initialize_optimizer(self):
-        self.dss.utils.run_command('calcV')
-        self.Nodes = self.dss.Circuit.YNodeOrder()
+        dss.utils.run_command('calcV')
+        self.Nodes = dss.Circuit.YNodeOrder()
         self.nNodes = len(self.Nodes)
 
         self.Slack = self.Objects['Vsources']["Vsource.source"]
@@ -97,7 +96,7 @@ class DERMSOptimizer(AbstractPostprocess):
         self.dssSolver.Solve()
         V1, V1_pu = self.get_voltage_Yorder()
 
-        capNames = self.dss.Capacitors.AllNames()
+        capNames = dss.Capacitors.AllNames()
         hCapNames = ",".join(capNames)
 
         loadData = self.get_elem_data(
@@ -205,7 +204,7 @@ class DERMSOptimizer(AbstractPostprocess):
         return PVSystem_1phase
 
     def get_incidence_matrix(self):
-        #self.dss.utils.run_command('solve mode=fault') dont think this is needed. May be wrong
+        #dss.utils.run_command('solve mode=fault') dont think this is needed. May be wrong
         Ybranch_prim, branch_node_incidence, nNeutral, record_index = self.construct_Yprime()
         current_coeff_matrix = np.dot(Ybranch_prim, branch_node_incidence)
         current_coeff_matrix = current_coeff_matrix[record_index, :-nNeutral]
@@ -213,7 +212,7 @@ class DERMSOptimizer(AbstractPostprocess):
         return current_coeff_matrix, branch_node_incidence, current_coeff_matrix
 
     def ExtractImpednceMatrix(self):
-        Y = self.dss.Circuit.SystemY()
+        Y = dss.Circuit.SystemY()
         Ybus = self.to_complex(Y)
         Y00 = Ybus[0:self.nSlack, 0:self.nSlack]
         Y01 = Ybus[0:self.nSlack, self.nSlack:]
@@ -227,7 +226,7 @@ class DERMSOptimizer(AbstractPostprocess):
         return Y00, Y01, Y10, Y11, Y11_sparse, Y11_inv, Ybus
 
     def get_voltage_Yorder(self):
-        temp_Vbus = self.dss.Circuit.YNodeVArray()
+        temp_Vbus = dss.Circuit.YNodeVArray()
         voltage = [complex(0, 0)] * self.nNodes
         for ii in range(self.nNodes):
             voltage[ii] = complex(temp_Vbus[ii * 2], temp_Vbus[ii * 2 + 1])
@@ -250,7 +249,7 @@ class DERMSOptimizer(AbstractPostprocess):
         start_no = 0
         count = 0
 
-        temp_AllNodeNames = self.dss.Circuit.YNodeOrder()
+        temp_AllNodeNames = dss.Circuit.YNodeOrder()
         for elemName, elmObj in self.branchElements.items():
             values = elmObj.GetValue('YPrim')
             Yprim = self.to_complex(values)
@@ -351,7 +350,7 @@ class DERMSOptimizer(AbstractPostprocess):
 
         while opt_iter < self.Options["max_iterations"]:
             self.dssSolver.reSolve()
-            PVlocation, PVpower, Vmes, Imes = self.dermsController.monitor(self._dssInstance, self.Objects,
+            PVlocation, PVpower, Vmes, Imes = self.dermsController.monitor(self.Objects,
                                                                            self.PVSystem_1phaseDF)
             self.Logger.info('Voltage measurements: {}'.format(len(Vmes)))
             self.Logger.info('Maximum voltage: {}'.format(max(Vmes)))

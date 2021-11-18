@@ -7,8 +7,6 @@ class xfmrController(ControllerAbstract):
                 :type FaultObj: class:`PyDSS.dssElement.dssElement`
                 :param Settings: A dictionary that defines the settings for the PvController.
                 :type Settings: dict
-                :param dssInstance: An :class:`opendssdirect` instance
-                :type dssInstance: :class:`opendssdirect`
                 :param ElmObjectList: Dictionary of all dssElement, dssBus and dssCircuit objects
                 :type ElmObjectList: dict
                 :param dssSolver: An instance of one of the classed defined in :mod:`PyDSS.SolveMode`.
@@ -17,8 +15,8 @@ class xfmrController(ControllerAbstract):
 
         """
 
-    def __init__(self, RegulatorObj, Settings, dssInstance, ElmObjectList, dssSolver):
-        super(xfmrController).__init__(RegulatorObj, Settings, dssInstance, ElmObjectList, dssSolver)
+    def __init__(self, RegulatorObj, Settings, ElmObjectList, dssSolver):
+        super(xfmrController).__init__(RegulatorObj, Settings, ElmObjectList, dssSolver)
         self.P_old = 0
         self.Time = -1
         self.__Locked = False

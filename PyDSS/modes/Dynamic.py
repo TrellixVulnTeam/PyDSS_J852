@@ -1,27 +1,27 @@
 from datetime import timedelta
 import math
 
-from PyDSS.modes.solver_base import solver_base
-from PyDSS.simulation_input_models import SimulationSettingsModel
+from PyDSS.modes.solver_base import SolverBase
+from PyDSS.simulation_input_models import ProjectModel
 
 
-class Dynamic(solver_base):
-    def __init__(self, dssInstance, settings: SimulationSettingsModel, Logger):
-        super().__init__(dssInstance, settings, Logger)
+class Dynamic(SolverBase):
+    def __init__(self, settings: ProjectModel):
+        super().__init__(settings)
         self.setMode('Dynamic')
-        self._dssInstance.utils.run_command('Set ControlMode={}'.format(settings.project.control_mode.value))
-        self._dssSolution.Number(1)
-        self._dssSolution.StepSize(self._sStepRes)
-        self._dssSolution.MaxControlIterations(settings.project.max_control_iterations)
-        self._dssSolution.DblHour(self._Hour + self._Second / 3600.0)
+        dss.run_command('Set ControlMode={}'.format(settings.project.control_mode.value))
+        dss.Solution.Number(1)
+        dss.Solution.StepSize(self._sStepRes)
+        dss.Solution.MaxControlIterations(settings.max_control_iterations)
+        dss.Solution.DblHour(self._Hour + self._Second / 3600.0)
         return
 
     def setFrequency(self, frequency):
-        self._dssSolution.Frequency(frequency)
+        dss.Solution.Frequency(frequency)
         return
 
     def getFrequency(self):
-        return self._dssSolution.Frequency()
+        return dss.Solution.Frequency()
 
     def SimulationSteps(self):
         Seconds = (self._EndTime - self._StartTime).total_seconds()
@@ -29,42 +29,41 @@ class Dynamic(solver_base):
         return Steps, self._StartTime, self._EndTime
 
     def GetOpenDSSTime(self):
-        return self._dssSolution.DblHour()
+        return dss.Solution.DblHour()
 
     def reset(self):
         self.setMode('Dynamic')
-        self._dssSolution.Hour(self._Hour)
-        self._dssSolution.Seconds(self._Second)
-        self._dssSolution.Number(1)
-        self._dssSolution.StepSize(self._sStepRes)
-        self._dssSolution.MaxControlIterations(self._settings.project.max_control_iterations)
+        dss.Solution.Hour(self._Hour)
+        dss.Solution.Seconds(self._Second)
+        dss.Solution.Number(1)
+        dss.Solution.StepSize(self._sStepRes)
+        dss.Solution.MaxControlIterations(self._settings.max_control_iterations)
         return
 
     def SolveFor(self, mStartTime, mTimeStep):
         Hour = int(mStartTime/60)
         Min = mStartTime % 60
-        self._dssSolution.DblHour(Hour + Min / 60.0)
-        self._dssSolution.Number(mTimeStep)
-        self._dssSolution.Solve()
-        return self._dssSolution.Converged()
+        dss.Solution.DblHour(Hour + Min / 60.0)
+        dss.Solution.Number(mTimeStep)
+        dss.Solution.Solve()
+        return dss.Solution.Converged()
 
     def IncStep(self):
-        self._dssSolution.StepSize(self._sStepRes)
-        self._dssSolution.Solve()
+        dss.Solution.StepSize(self._sStepRes)
+        dss.Solution.Solve()
         self._Time = self._Time + timedelta(seconds=self._sStepRes)
-        self._Hour = int(self._dssSolution.DblHour() // 1)
-        self._Second = (self._dssSolution.DblHour() % 1) * 60 * 60
-        self.pyLogger.debug('OpenDSS time [h] - ' + str(self._dssSolution.DblHour()))
+        self._Hour = int(dss.Solution.DblHour() // 1)
+        self._Second = (dss.Solution.DblHour() % 1) * 60 * 60
+        self.pyLogger.debug('OpenDSS time [h] - ' + str(dss.Solution.DblHour()))
         self.pyLogger.debug('PyDSS datetime - ' + str(self._Time))
-        return self._dssSolution.Converged()
+        return dss.Solution.Converged()
 
     def reSolve(self):
-        self._dssSolution.StepSize(0)
-        self._dssSolution.SolveNoControl()
-        return self._dssSolution.Converged()
+        dss.Solution.StepSize(0)
+        dss.Solution.SolveNoControl()
+        return dss.Solution.Converged()
 
     def Solve(self):
-        self._dssSolution.StepSize(0)
-        self._dssSolution.Solve()
-        return self._dssSolution.Converged()
-
+        dss.Solution.StepSize(0)
+        dss.Solution.Solve()
+        return dss.Solution.Converged()

@@ -15,8 +15,6 @@ class AbstractPostprocess(abc.ABC):
     :type scenario: PyDssScenario
     :param inputs: user inputs
     :type inputs: dict
-    :param dssInstance: A :class:`PyDSS.dssElement.dssElement` object that wraps around an OpenDSS 'Fault' element
-    :type dssInstance: dict
     :param dssBuses: Dictionary of all :class:`PyDSS.dssBus.dssBus` objects in PyDSS
     :type dssBuses: dict of :class:`PyDSS.dssBus.dssBus` objects
     :param dssObjects: Dictionary of all :class:`PyDSS.dssElement.dssElement` objects in PyDSS
@@ -28,7 +26,7 @@ class AbstractPostprocess(abc.ABC):
 
     """
 
-    def __init__(self, project, scenario, inputs, dssInstance, dssSolver, dssObjects, dssObjectsByClass, simulationSettings, logger):
+    def __init__(self, project, scenario, inputs, dssSolver, dssObjects, dssObjectsByClass, simulationSettings, logger):
         """This is the constructor class.
         """
         self.project = project
@@ -41,7 +39,6 @@ class AbstractPostprocess(abc.ABC):
         os.makedirs(self.config["Outputs"], exist_ok=True)
         self.Settings = simulationSettings
 
-        self._dssInstance = dssInstance
         self.logger = logger
         self._check_input_fields()
 

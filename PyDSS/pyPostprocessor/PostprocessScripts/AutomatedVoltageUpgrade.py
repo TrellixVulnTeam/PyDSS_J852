@@ -17,7 +17,7 @@ from PyDSS.common import SimulationType
 from PyDSS.exceptions import InvalidParameter, OpenDssConvergenceError
 from PyDSS.pyPostprocessor.pyPostprocessAbstract import AbstractPostprocess
 from PyDSS.pyPostprocessor.PostprocessScripts.postprocess_voltage_upgrades import postprocess_voltage_upgrades
-from PyDSS.utils.utils import iter_elements, check_redirect
+from PyDSS.utils.dss_utils import iter_elements, check_redirect
 
 plt.rcParams.update({'font.size': 14})
 
@@ -116,13 +116,12 @@ class AutomatedVoltageUpgrade(AbstractPostprocess):
         "thermal_scenario_name",
     )
 
-    def __init__(self, project, scenario, inputs, dssInstance, dssSolver, dssObjects, dssObjectsByClass, simulationSettings, Logger):
+    def __init__(self, project, scenario, inputs, dssSolver, dssObjects, dssObjectsByClass, simulationSettings, Logger):
         """Constructor method
         """
-        super(AutomatedVoltageUpgrade, self).__init__(project, scenario, inputs, dssInstance, dssSolver, dssObjects, dssObjectsByClass, simulationSettings, Logger)
+        super(AutomatedVoltageUpgrade, self).__init__(project, scenario, inputs, dssSolver, dssObjects, dssObjectsByClass, simulationSettings, Logger)
         self._simulation = None
         self._step = None
-        dss = dssInstance
         self.dssSolver = dssSolver
         self.config["project_dss_files_path"] = project.dss_files_path
         self.config["thermal_scenario_path"] = project.get_post_process_directory(self.config["thermal_scenario_name"])

@@ -4,8 +4,8 @@ import random
 
 class ThermostaticLoad(ControllerAbstract):
 
-    def __init__(self, LoadObj, Settings, dssInstance, ElmObjectList, dssSolver):
-        super(ThermostaticLoad, self).__init__(LoadObj, Settings, dssInstance, ElmObjectList, dssSolver)
+    def __init__(self, LoadObj, Settings, ElmObjectList, dssSolver):
+        super(ThermostaticLoad, self).__init__(LoadObj, Settings, ElmObjectList, dssSolver)
 
         self.TimeChange = False
         self.Time = (-1, 0)

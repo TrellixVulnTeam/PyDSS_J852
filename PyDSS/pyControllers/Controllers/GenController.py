@@ -9,8 +9,6 @@ class GenController(ControllerAbstract):
         :type FaultObj: class:`PyDSS.dssElement.dssElement`
         :param Settings: A dictionary that defines the settings for the PvController.
         :type Settings: dict
-        :param dssInstance: An :class:`opendssdirect` instance
-        :type dssInstance: :class:`opendssdirect`
         :param ElmObjectList: Dictionary of all dssElement, dssBus and dssCircuit objects
         :type ElmObjectList: dict
         :param dssSolver: An instance of one of the classed defined in :mod:`PyDSS.SolveMode`.
@@ -19,10 +17,10 @@ class GenController(ControllerAbstract):
 
     """
 
-    def __init__(self, GenObj, Settings, dssInstance, ElmObjectList, dssSolver):
+    def __init__(self, GenObj, Settings, ElmObjectList, dssSolver):
         """Constructor method
         """
-        super(GenController, self).__init__(GenObj, Settings, dssInstance, ElmObjectList, dssSolver)
+        super(GenController, self).__init__(GenObj, Settings, ElmObjectList, dssSolver)
         self.TimeChange = False
         self.Time = (-1, 0)
 
@@ -49,7 +47,6 @@ class GenController(ControllerAbstract):
             self.Phase = None
         self.__ElmObjectList = ElmObjectList
         self.__ControlledElm = GenObj
-        self.__dssInstance = dssInstance
         self.__dssSolver = dssSolver
         self.__Settings = Settings
 

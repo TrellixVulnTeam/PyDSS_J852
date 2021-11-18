@@ -1,33 +1,37 @@
 """Exceptions used in PyDSS"""
 
 
-class InvalidConfiguration(Exception):
+class PyDssException(Exception):
+    """Base class for all PyDSS exceptions"""
+
+
+class InvalidConfiguration(PyDssException):
     """Raised when a bad configuration is detected."""
 
 
-class InvalidParameter(Exception):
+class InvalidParameter(PyDssException):
     """Raised when bad user input is detected."""
 
 
-class OpenDssConvergenceError(Exception):
+class OpenDssConvergenceError(PyDssException):
     """Raised when OpenDSS fails to converge on a solution."""
 
 
-class OpenDssConvergenceErrorCountExceeded(Exception):
+class OpenDssConvergenceErrorCountExceeded(PyDssException):
     """Raised when OpenDSS exceeds the threshold of convergence error counts."""
 
 
-class OpenDssModelError(Exception):
+class OpenDssModelError(PyDssException):
     """Raised when OpenDSS fails to compile a model."""
 
 
-class PyDssConvergenceError(Exception):
+class PyDssConvergenceError(PyDssException):
     """Raised when PyDSS fails to converge on a solution."""
 
 
-class PyDssConvergenceMaxError(Exception):
+class PyDssConvergenceMaxError(PyDssException):
     """Raised when PyDSS exceeds a max convergence error threshold."""
 
 
-class PyDssConvergenceErrorCountExceeded(Exception):
+class PyDssConvergenceErrorCountExceeded(PyDssException):
     """Raised when PyDSS exceeds the threshold of convergence error counts."""

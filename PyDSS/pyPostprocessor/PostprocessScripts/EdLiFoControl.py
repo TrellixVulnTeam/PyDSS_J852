@@ -268,7 +268,6 @@ class EdLiFoControl(AbstractPostprocess):
         project,
         scenario,
         inputs,
-        dssInstance,
         dssSolver,
         dssObjects,
         dssObjectsByClass,
@@ -282,14 +281,12 @@ class EdLiFoControl(AbstractPostprocess):
             project,
             scenario,
             inputs,
-            dssInstance,
             dssSolver,
             dssObjects,
             dssObjectsByClass,
             simulationSettings,
             Logger,
         )
-        dss = dssInstance
 
         if isinstance(self.config["curtailment_size"], numbers.Number):
             self.curtailment_size = self.config["curtailment_size"]

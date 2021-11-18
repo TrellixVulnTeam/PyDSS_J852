@@ -1,5 +1,7 @@
 import ast
 
+import opendssdirect as dss
+
 from PyDSS.dssBus import dssBus
 from PyDSS.dssObjectBase import dssObjectBase
 from PyDSS.exceptions import InvalidParameter
@@ -48,53 +50,52 @@ class dssElement(dssObjectBase):
 
     _MAX_CONDUCTORS = 4
 
-    def __init__(self, dssInstance):
-        fullName = dssInstance.Element.Name()
-        if dssInstance.CktElement.Name() != fullName:
-            raise Exception(f"name mismatch {dssInstance.CktElement.Name()} {fullName}")
+    def __init__(self):
+        fullName = dss.Element.Name()
+        if dss.CktElement.Name() != fullName:
+            raise Exception(f"name mismatch {dss.CktElement.Name()} {fullName}")
 
         self._Class, name = fullName.split('.', 1)
-        super(dssElement, self).__init__(dssInstance, name, fullName)
-        self._Enabled = dssInstance.CktElement.Enabled()
+        super(dssElement, self).__init__(name, fullName)
+        self._Enabled = dss.CktElement.Enabled()
         if not self._Enabled:
             return
 
         self._Parameters = {}
-        self._NumTerminals = dssInstance.CktElement.NumTerminals()
-        self._NumConductors = dssInstance.CktElement.NumConductors()
+        self._NumTerminals = dss.CktElement.NumTerminals()
+        self._NumConductors = dss.CktElement.NumConductors()
 
         assert self._NumConductors <= self._MAX_CONDUCTORS, str(self._NumConductors)
-        self._NumPhases = dssInstance.CktElement.NumPhases()
+        self._NumPhases = dss.CktElement.NumPhases()
 
         n = self._NumConductors
-        nodes = dssInstance.CktElement.NodeOrder()
+        nodes = dss.CktElement.NodeOrder()
         self._Nodes = [nodes[i * n:(i + 1) * n] for i in range((len(nodes) + n - 1) // n)]
 
         assert len(nodes) == self._NumTerminals * self._NumConductors, \
             f"{self._Nodes} {self._NumTerminals} {self._NumConductors}"
 
-        self._dssInstance = dssInstance
 
-        PropertiesNames = self._dssInstance.Element.AllPropertyNames()
+        PropertiesNames = dss.Element.AllPropertyNames()
         AS = range(len(PropertiesNames))
         for i, PptName in zip(AS, PropertiesNames):
             self._Parameters[PptName] = str(i)
 
-        CktElmVarDict = dssInstance.CktElement.__dict__
-        for VarName in dssInstance.CktElement.AllVariableNames():
+        CktElmVarDict = dss.CktElement.__dict__
+        for VarName in dss.CktElement.AllVariableNames():
             CktElmVarDict[VarName] = None
 
         for key in CktElmVarDict.keys():
             try:
-                self._Variables[key] = getattr(dssInstance.CktElement, key)
+                self._Variables[key] = getattr(dss.CktElement, key)
             except:
                 self._Variables[key] = None
-        self.Bus = dssInstance.CktElement.BusNames()
+        self.Bus = dss.CktElement.BusNames()
         self.BusCount = len(self.Bus)
         self.sBus = []
         for BusName in self.Bus:
-            self._dssInstance.Circuit.SetActiveBus(BusName)
-            self.sBus.append(dssBus(self._dssInstance))
+            dss.Circuit.SetActiveBus(BusName)
+            self.sBus.append(dssBus())
 
     def GetInfo(self):
         return self._Class, self._Name
@@ -126,7 +127,7 @@ class dssElement(dssObjectBase):
             return 0, None
 
     def GetValue(self, VarName, convert=False):
-        if self._dssInstance.Element.Name() != self._FullName:
+        if dss.Element.Name() != self._FullName:
             self.SetActiveObject()
         if VarName in self._Variables:
             VarValue = self.GetVariable(VarName, convert=convert)
@@ -139,23 +140,23 @@ class dssElement(dssObjectBase):
         return VarValue
 
     def SetActiveObject(self):
-        self._dssInstance.Circuit.SetActiveElement(self._FullName)
-        if self._dssInstance.CktElement.Name() != self._dssInstance.Element.Name():
+        dss.Circuit.SetActiveElement(self._FullName)
+        if dss.CktElement.Name() != dss.Element.Name():
             raise InvalidParameter('Object is not a circuit element')
 
     def SetParameter(self, Param, Value):
-        reply = self._dssInstance.utils.run_command(self._FullName + '.' + Param + ' = ' + str(Value))
+        reply = dss.utils.run_command(self._FullName + '.' + Param + ' = ' + str(Value))
         if reply != "":
             raise Exception(f"SetParameter failed: {reply}")
         return self.GetParameter(Param)
 
     def GetParameter(self, Param):
-        if self._dssInstance.Element.Name() != self._FullName:
-            self._dssInstance.Circuit.SetActiveElement(self._FullName)
-        if self._dssInstance.Element.Name() == self._FullName:
+        if dss.Element.Name() != self._FullName:
+            dss.Circuit.SetActiveElement(self._FullName)
+        if dss.Element.Name() == self._FullName:
             # This always returns a string.
             # The real value could be a number, a list of numbers, or a string.
-            x = self._dssInstance.Properties.Value(Param)
+            x = dss.Properties.Value(Param)
             try:
                 return float(x)
             except ValueError:

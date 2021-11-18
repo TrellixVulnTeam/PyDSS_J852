@@ -1,3 +1,5 @@
+import opendssdirect as dss
+
 from PyDSS.dssObjectBase import dssObjectBase
 
 class dssCircuit(dssObjectBase):
@@ -13,16 +15,16 @@ class dssCircuit(dssObjectBase):
         "TotalPower",
     )
 
-    def __init__(self, dssInstance):
-        name = dssInstance.Circuit.Name()
+    def __init__(self):
+        name = dss.Circuit.Name()
         fullName = "Circuit." + name
         self._Class = 'Circuit'
-        super(dssCircuit, self).__init__(dssInstance, name, fullName)
+        super(dssCircuit, self).__init__(name, fullName)
 
-        CktElmVarDict = dssInstance.Circuit.__dict__
+        CktElmVarDict = dss.Circuit.__dict__
         for key in CktElmVarDict.keys():
             try:
-                self._Variables[key] = getattr(dssInstance.Circuit, key)
+                self._Variables[key] = getattr(dss.Circuit, key)
             except:
                 self._Variables[key] = None
 
