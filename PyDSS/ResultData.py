@@ -151,6 +151,8 @@ class ResultData:
         for element in self._elements:
             element.initialize_data_store(hdf_store, self._scenario, num_steps)
 
+        return
+
     def GetCurrentData(self):
         self.CurrentResults.clear()
         for elem in self._elements:

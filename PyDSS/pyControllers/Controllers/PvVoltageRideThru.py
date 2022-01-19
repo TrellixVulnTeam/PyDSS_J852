@@ -56,16 +56,21 @@ class PvVoltageRideThru(ControllerAbstract):
 
         # Initializing the model
         PvObj.SetParameter('kvar', 0)
-        #self.__BaseKV = float(PvObj.SetParameter('kv',Settings['kV']))
-        self.__Srated = float(PvObj.SetParameter('kva', Settings['kVA']))
-        self.__Prated = float(PvObj.SetParameter('kW', Settings['maxKW']))
-        self.__minQ = float(PvObj.SetParameter('minkvar', -Settings['KvarLimit']))
-        self.__maxQ = float(PvObj.SetParameter('maxkvar', Settings['KvarLimit']))
+        # self.__Srated = float(PvObj.SetParameter('kva', Settings['kVA']))
+        # self.__Prated = float(PvObj.SetParameter('kW', Settings['maxKW']))
+        # self.__minQ = float(PvObj.SetParameter('minkvar', -Settings['KvarLimit']))
+        # self.__maxQ = float(PvObj.SetParameter('maxkvar', Settings['KvarLimit']))
+
+        self.__Srated = float(PvObj.GetParameter('kva'))
+        self.__Prated = float(PvObj.GetParameter('kW'))
+        self.__minQ = float(PvObj.GetParameter('minkvar'))
+        self.__maxQ = float(PvObj.GetParameter('maxkvar'))
+
 
         # MISC settings
         self.__cutin = Settings['%PCutin']
         self.__cutout = Settings['%PCutout']
-        self.__trip_deadtime_sec = Settings['Reconnect deadtime - sec']
+        self.__trip_deadtime_sec =  Settings['Reconnect deadtime - sec']
         self.__Time_to_Pmax_sec = Settings['Reconnect Pmax time - sec']
         self.__alpha = Settings['alpha']
         self.__beta = Settings['beta']
