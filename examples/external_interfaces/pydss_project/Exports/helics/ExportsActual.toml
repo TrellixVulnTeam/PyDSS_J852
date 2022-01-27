@@ -1,0 +1,61 @@
+[[Loads]]
+property = "Powers"
+data_conversion = "none"
+opendss_classes = []
+sample_interval = 1
+publish = false
+store_values_type = "all"
+sum_elements = false
+sum_groups = []
+
+[[Circuits]]
+property = "TotalPower"
+data_conversion = "none"
+opendss_classes = []
+sample_interval = 1
+publish = true
+store_values_type = "all"
+sum_elements = false
+sum_groups = []
+
+[[Lines]]
+property = "Currents"
+data_conversion = "none"
+opendss_classes = []
+sample_interval = 1
+publish = true
+store_values_type = "sum"
+sum_elements = false
+sum_groups = []
+
+[[Lines]]
+property = "NormalAmps"
+data_conversion = "none"
+opendss_classes = []
+sample_interval = 1
+publish = false
+store_values_type = "sum"
+sum_elements = false
+sum_groups = []
+
+[[Lines]]
+property = "VoltagesMagAng"
+data_conversion = "none"
+opendss_classes = []
+sample_interval = 1
+names = [ "Line.sw1", "Line.sw0",]
+publish = true
+store_values_type = "all"
+sum_elements = false
+sum_groups = []
+
+[[Lines]]
+property = "CurrentsMagAng"
+data_conversion = "none"
+opendss_classes = []
+sample_interval = 1
+publish = true
+store_values_type = "all"
+sum_elements = false
+sum_groups = []
+

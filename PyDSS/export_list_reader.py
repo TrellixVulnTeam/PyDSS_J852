@@ -451,10 +451,16 @@ class ExportListReader:
             Format: ["ElementClass Property"]
 
         """
-        return [
-            f"{x.elem_class} {x.name}" for x in self.iter_export_properties()
-            if x.publish
-        ]
+        publicationList = {}
+        for k, v in self._elem_classes.items():
+            for a in v:
+                if a.publish:
+                    if k not in publicationList:
+                        publicationList[k] = {}
+                    publicationList[k][a.name] = a._names
+        
+        return publicationList
+   
 
     def serialize(self):
         """Serialize object to a dictionary."""

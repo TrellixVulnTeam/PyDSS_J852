@@ -24,20 +24,19 @@
 # post_process_infos = []
 
 [[Project.Scenarios]]
-name = "socket"
+name = "helics"
 post_process_infos = []
 
 [Exports]
+"Log Results" = true
 "Export Mode" = "byClass"
 "Export Style" = "Single file"
-"Export Format" = "csv"
-"Export Compression" = false
 "Export Elements" = true
-"Export Data Tables" = false
-"Export Data In Memory" = false
-"HDF Max Chunk Bytes" = 32768
 "Export Event Log" = true
-"Log Results" = true
+"Export Format" = "h5"
+"Export Compression" = true
+"Export Data Tables" = false
+"Export PV Profiles" = false
 
 [Frequency]
 "Enable frequency sweep" = false
@@ -49,10 +48,12 @@ post_process_infos = []
 "Percentage load in series" = 50.0
 
 [Helics]
-"Co-simulation Mode" = false
+"Co-simulation Mode" = true
 "Federate name" = "PyDSS"
 "Time delta" = 0.01
 "Core type" = "zmq"
+"Broker" = "127.0.0.1"
+"Broker port" = 23404
 Uninterruptible = true
 "Helics logging level" = 5
 

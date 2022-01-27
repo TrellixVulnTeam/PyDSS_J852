@@ -76,7 +76,7 @@ class pySubscriptionReader:
 class pyExportReader:
     def __init__(self, filePath):
         self.pyControllers = {}
-        self.publicationList = []
+        self.publicationList = {}
         xlsx_filename = os.path.splitext(filePath)[0] + '.xlsx'
         if not os.path.exists(filePath) and os.path.exists(xlsx_filename):
             convert_config_data_to_toml(xlsx_filename)
@@ -88,4 +88,6 @@ class pyExportReader:
             self.pyControllers[elem] = elem_data["Publish"][:]
             self.pyControllers[elem] += elem_data["NoPublish"]
             for item in elem_data["Publish"]:
-                self.publicationList.append(f"{elem} {item}")
+                if elem not in self.publicationList:
+                    self.publicationList[elem] = {}
+                self.publicationList[elem][item] = None

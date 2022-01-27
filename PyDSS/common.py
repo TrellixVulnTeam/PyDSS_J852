@@ -46,10 +46,8 @@ class ControllerType(enum.Enum):
     THERMOSTATIC_LOAD_CONTROLLER = "ThermostaticLoad"
     GENERATOR_CONTROLLER = "GenController"
 
-
 CONTROLLER_TYPES = tuple(x.value for x in ControllerType)
 CONFIG_EXT = ".toml"
-
 
 class ExportMode(enum.Enum):
     BY_CLASS = "ExportMode-byClass"
@@ -57,10 +55,8 @@ class ExportMode(enum.Enum):
     SUBSCRIPTIONS = 'Subscriptions'
     EXPORTS = "Exports"
 
-
 def filename_from_enum(obj):
     return obj.value + CONFIG_EXT
-
 
 TIMESERIES_PLOT_FILENAME = filename_from_enum(VisualizationType.TIMESERIES_PLOT)
 PV_CONTROLLER_FILENAME = filename_from_enum(ControllerType.PV_CONTROLLER)
@@ -70,7 +66,6 @@ XMFR_CONTROLLER_FILENAME = filename_from_enum(ControllerType.SOCKET_CONTROLLER)
 EXPORT_BY_CLASS_FILENAME = filename_from_enum(ExportMode.BY_CLASS)
 EXPORT_BY_ELEMENT_FILENAME = filename_from_enum(ExportMode.BY_ELEMENT)
 EXPORTS_FILENAME = filename_from_enum(ExportMode.EXPORTS)
-
 
 DEFAULT_SUBSCRIPTIONS_FILE = os.path.join(
     os.path.dirname(getattr(PyDSS, "__path__")[0]),

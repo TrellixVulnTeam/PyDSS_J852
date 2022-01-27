@@ -1,8 +1,11 @@
 import logging
+from click import pass_context
 import helics
 import os
-
+from PyDSS.common import ExportMode
+from PyDSS.utils.utils import load_data
 from PyDSS.pyContrReader import pyExportReader, pySubscriptionReader
+from PyDSS.export_list_reader import ExportListReader
 from PyDSS.pyLogger import getLoggerTag
 from PyDSS.simulation_input_models import SimulationSettingsModel
 
@@ -175,30 +178,83 @@ class helics_interface:
         self.c_seconds_old = self.c_seconds
 
     def _registerFederatePublications(self, pubs):
+        publicationList = None
         if pubs is not None:
             publicationList= pubs
         else:
-            self._file_reader = pyExportReader(
-                os.path.join(
-                    self._system_paths ["ExportLists"],
-                    "ExportMode-byClass.toml",
-                ),
-            )
-            publicationList = self._file_reader.publicationList
-        self._publications = {}
-        for valid_publication in publicationList:
-            obj_class, obj_property = valid_publication.split(' ')
-            objects = self._objects_by_class[obj_class]
-            for obj_X, obj in objects.items():
-                name = '{}.{}.{}'.format(self._settings.helics.federate_name, obj_X, obj_property)
-                self._publications[name] = helics.helicsFederateRegisterGlobalTypePublication(
-                    self._PyDSSfederate,
-                    name,
-                    self.type_info[obj_property],
-                    ''
+            try:
+                self._file_reader = pyExportReader(
+                    os.path.join(
+                        self._system_paths ["ExportLists"],
+                        ExportMode.BY_CLASS.value + ".toml",
+                    ),
                 )
-                self._logger.info(f'Publication registered: {name}')
+                publicationList = self._file_reader.publicationList
+            except:
+                try:
+                    file =  os.path.join(
+                            self._system_paths ["ExportLists"],
+                             ExportMode.EXPORTS.value + ".toml",
+                        )
+                    self._file_reader = ExportListReader( file )
+                    publicationList = self._file_reader.publicationList
+  
+
+                except:
+                    assert publicationList is not None, "PyDSS failed to read publications"
+
+        self._publications = {}
+        all_filtered_elements = {}
+        for elm_class, elm_ppty_dict in publicationList.items():
+            all_filtered_elements[elm_class] = {}
+            objects = self._objects_by_class[elm_class]
+            for elm_ppty, elm_filter in elm_ppty_dict.items():
+                if elm_filter is None:
+                    filtered_objects = objects
+                elif isinstance(elm_filter, set):
+                    filtered_objects = {}
+                    for n in elm_filter:
+                        if n in objects:
+                            filtered_objects[n] = objects[n]
+                        else:
+                            raise Exception(f"{n} object not found in the OpenDSS model")
+                elif isinstance(elm_filter, list):
+
+                    object_names = list(objects.keys())
+                    filtered_names = []
+                    for r in elm_filter:
+                        filtered_list = list(filter(r.match, object_names))
+                        filtered_names.extend(filtered_list)
+
+                    filtered_names = list(set(filtered_names))
+                    filtered_objects = {}
+                    for n in filtered_names:
+                        if n in objects:
+                            filtered_objects[n] = objects[n]
+                        else:
+                            raise Exception(f"{n} object not found in the OpenDSS model")
+                    pass
+                else:
+                    raise Exception("Publication dictionary is in an unexpected format.")
+
+                all_filtered_elements[elm_class][elm_ppty] = filtered_objects
+        
+        for elm_class, ppty_dict in all_filtered_elements.items():
+            for ppty, obj_dict in ppty_dict.items():
+                for obj_name, obj in obj_dict.items():
+                    name = self.creatPublicationName(obj_name, ppty)
+                    print(name)
+                    self._publications[name] = helics.helicsFederateRegisterGlobalTypePublication(
+                        self._PyDSSfederate,
+                        name,
+                        self.type_info[ppty],
+                        ''
+                    )
+                    self._logger.info(f'Publication registered: {name}')
         return
+
+    def creatPublicationName(self, obj_name, ppty):
+        return '{}.{}.{}'.format(self._settings.helics.federate_name, obj_name, ppty)
 
     def updateHelicsPublications(self):
         for element, pub in self._publications.items():
