@@ -12,6 +12,24 @@ class dssCircuit(dssObjectBase):
         "SubstationLosses",
         "TotalPower",
     )
+    UNITS={
+        "LineLosses": {
+            "is_complex": True,
+            "units": ['VA']
+        },
+        "Losses": {
+            "is_complex": True,
+            "units": ['VA']
+        },
+        "SubstationLosses": {
+            "is_complex": True,
+            "units": ['VA']
+        },
+        "TotalPower": {
+            "is_complex": True,
+            "units": ['kVA']
+        },
+    }
 
     def __init__(self, dssInstance):
         name = dssInstance.Circuit.Name()

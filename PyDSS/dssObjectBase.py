@@ -73,19 +73,21 @@ class dssObjectBase(abc.ABC):
         if not convert:
             return value
 
+        units = None
         if VarName in self.VARIABLE_OUTPUTS_BY_LABEL:
             info = self.VARIABLE_OUTPUTS_BY_LABEL[VarName]
             is_complex = info["is_complex"]
             units = info["units"]
             return ValueByLabel(self._FullName, VarName, value, self._Nodes, is_complex, units)
         elif VarName in self.VARIABLE_OUTPUTS_COMPLEX:
+            units = self.UNITS[VarName]["units"]
             assert isinstance(value, list) and len(value) == 2, str(value)
             value = complex(value[0], value[1])
         elif VarName in self.VARIABLE_OUTPUTS_BY_LIST:
             assert isinstance(value, list), str(value)
             labels = [f"_bus_index_{i}" for i in range(len(value))]
             return ValueByList(self._FullName, VarName, value, labels)
-        return ValueByNumber(self._FullName, VarName, value)
+        return ValueByNumber(self._FullName, VarName, value, units)
 
     def UpdateValue(self, VarName):
         cachedValue = self._CachedValueStorage.get(VarName)

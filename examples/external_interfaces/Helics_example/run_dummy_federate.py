@@ -48,7 +48,7 @@ print("Federate created: ", vfed )
 pub1 = h.helicsFederateRegisterGlobalTypePublication(vfed, "test.load1.power", "double", "kW")
 pub2 = h.helicsFederateRegisterGlobalTypePublication(vfed, "test.feederhead.voltage", "double", "kW")
 print("Publication creation complete")
-sub1 = h.helicsFederateRegisterSubscription(vfed, "PyDSS.Circuit.heco19021.TotalPower", "")
+sub1 = h.helicsFederateRegisterSubscription(vfed, "PyDSS/Circuit/heco19021/power/complex/ABC/1", "kVA")
 #h.helicsInputSetMinimumChange(sub1, 0.1)
 print("Subscription creation complete")
 # Enter execution mode #
@@ -71,7 +71,7 @@ for t in range(1, 30):
         )
         h.helicsPublicationPublishDouble(pub1, 5.0 + 1. / (1.0 + i))
         h.helicsPublicationPublishDouble(pub2, 1.0)
-        value = h.helicsInputGetVector(sub1)
+        value = h.helicsInputGetComplex(sub1)
         print(value)
 
 h.helicsFederateFinalize(vfed)

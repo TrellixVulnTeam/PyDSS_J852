@@ -14,6 +14,37 @@ class helics_interface:
 
     n_states = 5
     init_state = 1
+    
+    ppty_mapping = {
+        'CurrentsMagAng': 'current',
+        'Currents': 'current',
+        'RatedCurrent': 'current',
+        'EmergAmps': 'current',
+        'NormalAmps': 'normcurrent',
+        'normamps': 'current',
+        'Losses': 'power',
+        'PhaseLosses': 'power',
+        'Powers': 'power',
+        'TotalPower': 'power',
+        'LineLosses': 'power',
+        'SubstationLosses': 'power',
+        'kV': 'voltage',
+        'kVARated': 'power',
+        'kvar': 'power',
+        'kW': 'power',
+        'kVABase': 'power',
+        'kWh': 'power',
+        'puVmagAngle': 'voltage',
+        'VoltagesMagAng': 'voltage',
+        'VMagAngle': 'voltage',
+        'Voltages': 'voltage',
+        'Vmaxpu': 'voltage',
+        'Vminpu': 'voltage',
+        'Frequency': 'frequency',
+        'Taps': 'taps',
+        '%stored': 'energy',
+        'Distance': 'distance'
+    }
 
     type_info = {
         'CurrentsMagAng': 'vector',
@@ -242,26 +273,51 @@ class helics_interface:
         for elm_class, ppty_dict in all_filtered_elements.items():
             for ppty, obj_dict in ppty_dict.items():
                 for obj_name, obj in obj_dict.items():
-                    name = self.creatPublicationName(obj_name, ppty)
-                    print(name)
-                    self._publications[name] = helics.helicsFederateRegisterGlobalTypePublication(
-                        self._PyDSSfederate,
-                        name,
-                        self.type_info[ppty],
-                        ''
-                    )
-                    self._logger.info(f'Publication registered: {name}')
-        return
+                    
+                    value = obj.GetValue(ppty, convert=True)
+                    names = self.creatPublicationName(obj_name, ppty, value.units)
+                    for i, n in enumerate(names):
+                        if not isinstance(value.value, list):
+                            v = value.value
+                        else:
+                            v = value.value[i]
+                        
+                        pubtype = "complex" if isinstance(v, complex) else "double"
+                        unit = value.units[i]["unit"]
+                        pub =  helics.helicsFederateRegisterGlobalTypePublication(
+                            self._PyDSSfederate,
+                            n,
+                            pubtype,
+                            unit
+                        )
+                        self._publications[n] = {
+                            "publication": pub,
+                            "value_index": i,
+                            "pydss_object": obj,
+                            "property": ppty,
+                            "type": pubtype,
+                        }
+                        print(f'Publication registered: {n} with units {unit}')
+                        self._logger.info(f'Publication registered: {n} with units {unit}')
 
-    def creatPublicationName(self, obj_name, ppty):
-        return '{}.{}.{}'.format(self._settings.helics.federate_name, obj_name, ppty)
+    def creatPublicationName(self, obj_name, ppty, units):
+        names = []
+        for unit in units:
+            obj_name = obj_name.replace(".", "/")
+            mapped_meas = self.ppty_mapping[ppty]
+            name = f"{self._settings.helics.federate_name}/{obj_name}/{mapped_meas}/{unit['type']}/{unit['phase']}/{unit['terminal']}"
+            names.append(name)
+        return names
 
     def updateHelicsPublications(self):
-        for element, pub in self._publications.items():
-            fed_name, class_name, object_name, ppty_name = element.split('.')
-            obj_name = '{}.{}'.format(class_name, object_name)
-            obj = self._objects_by_element[obj_name]
-            value = obj.GetValue(ppty_name)
+
+        for element, pub_dict in self._publications.items():
+            pub = pub_dict["publication"]
+            obj = pub_dict["pydss_object"]
+            value  = obj.GetValue(pub_dict["property"])
+            if pub_dict["value_index"] is not None:
+                value = value[pub_dict["value_index"]] 
+
             if isinstance(value, list):
                 helics.helicsPublicationPublishVector(pub, value)
             elif isinstance(value, float):

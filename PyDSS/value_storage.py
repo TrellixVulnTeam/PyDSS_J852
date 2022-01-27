@@ -249,6 +249,8 @@ class ValueByList(ValueStorageBase):
         self._labels = []
         self._value_type = None
         self._value = []
+
+    
         assert (isinstance(values, list) and len(values) == len(label_suffixes)), \
             '"values" and "label_suffixes" should be lists of equal lengths'
         for val, lab_suf in zip(values, label_suffixes):
@@ -257,7 +259,7 @@ class ValueByList(ValueStorageBase):
             self._value.append(val)
             if self._value_type is None:
                 self._value_type = type(val)
-
+    
     def __iadd__(self, other):
         for i in range(len(self._value)):
             self._value[i] += other.value[i]
@@ -317,18 +319,41 @@ class ValueByList(ValueStorageBase):
 
 class ValueByNumber(ValueStorageBase):
     """Stores a list of numbers for an element/property."""
-    def __init__(self, name, prop, value):
+    def __init__(self, name, prop, value, units=None):
         super().__init__()
         assert not isinstance(value, list), str(value)
         self._name = name
         self._prop = prop
         self._value_type = type(value)
+    
         if self._value_type == str:
             raise InvalidConfiguration(
                 f"Data export feature does not support strings: name={name} prop={prop} value={value}"
             )
         self._value = value
-        self._is_complex = isinstance(self._value_type, complex)
+        self._is_complex = isinstance(value, complex)
+        if self._is_complex and units:
+            self._units = [{
+                                "phase": "ABC",
+                                "terminal": 1,
+                                "unit": units[0],
+                                "type": "complex"
+                            }]
+        elif not self._is_complex and units:
+            self._units = [{
+                                "phase": "ABC",
+                                "terminal": 1,
+                                "unit": units[0].strip("[]"),
+                                "type": "real"
+                            },
+                            {
+                                "phase": "ABC",
+                                "terminal": 1,
+                                "unit": units[1].strip("[]"),
+                                "type": "imag"
+                            }]
+        else:
+            self._units = []
 
     def __iadd__(self, other):
         self._value += other.value
@@ -377,6 +402,10 @@ class ValueByNumber(ValueStorageBase):
     def value_type(self):
         return self._value_type
 
+    @property
+    def units(self):
+        return self._units
+
 
 class ValueByLabel(ValueStorageBase):
     """Stores a list of lists of numbers by an arbitrary label. Use this class when working with cktElement function
@@ -414,6 +443,8 @@ class ValueByLabel(ValueStorageBase):
         self._value_type = complex if is_complex else float
         self._is_complex = is_complex
 
+        self._units = []
+
         n = 2
         m = int(len(value) / (len(Nodes)*n))
 
@@ -439,11 +470,33 @@ class ValueByLabel(ValueStorageBase):
                     label += " " + units[0]
                     self._labels.append(label)
                     self._value += [complex(x[0], x[1])]
+                    self._units.append(
+                        {
+                            "phase": phs[v],
+                            "terminal": str(i+1),
+                            "unit": units[0].strip("[]"),
+                            "type": "complex"
+                        }
+                    )
                 else:
                     label_mag = label + self.DELIMITER + "mag" + ' ' + units[0]
                     label_ang = label + self.DELIMITER + "ang" + ' ' + units[1]
                     self._labels.extend([label_mag, label_ang])
                     self._value += [x[0], x[1]]
+                    self._units.extend(
+                        [{
+                            "phase": phs[v],
+                            "terminal": str(i+1),
+                            "unit": units[0].strip("[]"),
+                            "type": "mag"
+                        },
+                        {
+                            "phase": phs[v],
+                            "terminal": str(i+1),
+                            "unit": units[1].strip("[]"),
+                            "type": "ang"
+                        }]      
+                    )
 
     def __iadd__(self, other):
         for i in range(len(self._value)):
@@ -453,6 +506,10 @@ class ValueByLabel(ValueStorageBase):
     def __gt__(self, other):
         # TODO
         return sum(self._value) > sum(other.value)
+
+    @property
+    def units(self):
+        return self._units
 
     @property
     def value(self):

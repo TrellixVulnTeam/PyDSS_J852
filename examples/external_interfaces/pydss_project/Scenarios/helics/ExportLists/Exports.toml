@@ -13,7 +13,7 @@ store_values_type = "all"
 [[Lines]]
 property = "Currents"
 sample_interval = 1
-publish = true
+publish = false
 store_values_type = "sum"
 
 [[Lines]]
@@ -26,7 +26,7 @@ store_values_type = "sum"
 property = "VoltagesMagAng"
 sample_interval = 1
 names = ["Line.sw0", "Line.sw1"]
-publish = true
+publish = false
 store_values_type = "all"
 
 [[Lines]]
