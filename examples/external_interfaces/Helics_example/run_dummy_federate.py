@@ -55,7 +55,13 @@ print("Subscription creation complete")
 
 print("Federate finalized: ", vfed )
 
-h.helicsFederateEnterExecutingMode(vfed)
+#works
+#h.helicsFederateEnterExecutingMode(vfed)
+#does not work
+h.helicsFederateEnterExecutingModeIterative(
+    vfed,
+    h.helics_iteration_request_iterate_if_needed
+)
 print("Entered execution mode")
 
 for t in range(1, 30):

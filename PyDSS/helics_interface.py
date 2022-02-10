@@ -1,4 +1,5 @@
 import logging
+from re import L
 from click import pass_context
 import helics
 import os
@@ -102,10 +103,12 @@ class helics_interface:
         self._registerFederateSubscriptions(subs)
         self._registerFederatePublications(pubs)
 
-        helics.helicsFederateEnterExecutingModeIterative(
-            self._PyDSSfederate,
-            helics.helics_iteration_request_iterate_if_needed
-        )
+        helics.helicsFederateEnterExecutingMode(self._PyDSSfederate)
+
+        # helics.helicsFederateEnterExecutingModeIterative(
+        #     self._PyDSSfederate,
+        #     helics.helics_iteration_request_iterate_if_needed
+        # )
         self._logger.info('Entered HELICS execution mode')
 
     def _create_helics_federate(self):
@@ -314,8 +317,11 @@ class helics_interface:
         for element, pub_dict in self._publications.items():
             pub = pub_dict["publication"]
             obj = pub_dict["pydss_object"]
-            value  = obj.GetValue(pub_dict["property"])
-            if pub_dict["value_index"] is not None:
+            value  = obj.GetValue(pub_dict["property"], convert=True)
+            
+            value = value.value
+
+            if pub_dict["value_index"] is not None and isinstance(value, list):
                 value = value[pub_dict["value_index"]] 
 
             if isinstance(value, list):
@@ -328,6 +334,8 @@ class helics_interface:
                 helics.helicsPublicationPublishBoolean(pub, value)
             elif isinstance(value, int):
                 helics.helicsPublicationPublishInteger(pub, value)
+            elif isinstance(value, complex):
+                helics.helicsPublicationPublishComplex(pub, value)
         return
 
     def request_time_increment(self):
