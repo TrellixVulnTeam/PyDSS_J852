@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 
 
 def get_snapshot_timepoint(settings: SimulationSettingsModel, mode: SnapshotTimePointSelectionMode):
+    aggregate_pv_timepoints_flag = True
+    individual_pv_timepoints_flag = False
     pv_systems = dss.PVsystems.AllNames()
     if not pv_systems:
         logger.info("No PVSystems are present.")
@@ -31,6 +33,9 @@ def get_snapshot_timepoint(settings: SimulationSettingsModel, mode: SnapshotTime
         column = "Min Daytime Load"
     elif mode == SnapshotTimePointSelectionMode.MAX_PV_MINUS_LOAD:
         column = "Max PV minus Load"
+    elif mode == SnapshotTimePointSelectionMode.INDIVIDUAL_PV_TIMEPOINTS:
+        individual_pv_timepoints_flag = True
+        aggregate_pv_timepoints_flag = False
     else:
         assert False, f"{mode} is not supported"
 
@@ -44,6 +49,7 @@ def get_snapshot_timepoint(settings: SimulationSettingsModel, mode: SnapshotTime
     pv_generation_hours = {'start_time': '8:00', 'end_time': '17:00'}
     aggregate_profiles = pd.DataFrame(columns=['Load', 'PV'])
     pv_shapes = {}
+    individual_pv_profiles = pd.DataFrame()
     for pv_name in pv_systems:
         dss.PVsystems.Name(pv_name)
         pmpp = float(dss.Properties.Value('Pmpp'))
@@ -51,6 +57,8 @@ def get_snapshot_timepoint(settings: SimulationSettingsModel, mode: SnapshotTime
         dss.LoadShape.Name(profile_name)
         if profile_name not in pv_shapes.keys():
             pv_shapes[profile_name] = create_loadshape_pmult_dataframe_for_simulation(settings)
+        if individual_pv_timepoints_flag:
+            individual_pv_profiles[pv_name] =  (pv_shapes[profile_name] * pmpp)[0]
         if len(aggregate_profiles) == 0:
             aggregate_profiles['PV'] = (pv_shapes[profile_name] * pmpp)[0]
             aggregate_profiles = aggregate_profiles.replace(np.nan, 0)
@@ -61,6 +69,7 @@ def get_snapshot_timepoint(settings: SimulationSettingsModel, mode: SnapshotTime
     if not loads:
         logger.info("No Loads are present")
     load_shapes = {}
+    individual_load_profiles = pd.DataFrame()
     for load_name in loads:
         dss.Loads.Name(load_name)
         kw = float(dss.Properties.Value('kW'))
@@ -68,6 +77,8 @@ def get_snapshot_timepoint(settings: SimulationSettingsModel, mode: SnapshotTime
         dss.LoadShape.Name(profile_name)
         if profile_name not in load_shapes.keys():
             load_shapes[profile_name] = create_loadshape_pmult_dataframe_for_simulation(settings)
+        if individual_pv_timepoints_flag:
+            individual_load_profiles[load_name] =  (load_shapes[profile_name] * kw)[0]
         if len(aggregate_profiles) == 0:
             aggregate_profiles['Load'] = (load_shapes[profile_name] * kw)[0]
         else:
@@ -80,12 +91,19 @@ def get_snapshot_timepoint(settings: SimulationSettingsModel, mode: SnapshotTime
     timepoints = pd.DataFrame(columns=['Timepoints'])
     timepoints.loc['Max Load'] = aggregate_profiles['Load'].idxmax()
     if pv_systems:
-        timepoints.loc['Max PV to Load Ratio'] = aggregate_profiles.between_time(pv_generation_hours['start_time'],
-                                                                                 pv_generation_hours['end_time'])['PV to Load Ratio'].idxmax()
-        timepoints.loc['Max PV minus Load'] = aggregate_profiles.between_time(pv_generation_hours['start_time'],
-                                                                              pv_generation_hours['end_time'])['PV minus Load'].idxmax()
-        timepoints.loc['Max PV'] = aggregate_profiles.between_time(pv_generation_hours['start_time'],
-                                                                   pv_generation_hours['end_time'])['PV'].idxmax()
+        if individual_pv_timepoints_flag:
+            max_pv_individual_timepoint = individual_pv_profiles.between_time(pv_generation_hours['start_time'],
+                                                                    pv_generation_hours['end_time'])['PV'].idxmax()  # returns the index for the maximum value in each column
+            # TODO need a mapping between load and PV to create ratio - then compute max timepoint for that
+            
+            
+        if aggregate_pv_timepoints_flag:
+            timepoints.loc['Max PV to Load Ratio'] = aggregate_profiles.between_time(pv_generation_hours['start_time'],
+                                                                                    pv_generation_hours['end_time'])['PV to Load Ratio'].idxmax()
+            timepoints.loc['Max PV minus Load'] = aggregate_profiles.between_time(pv_generation_hours['start_time'],
+                                                                                pv_generation_hours['end_time'])['PV minus Load'].idxmax()
+            timepoints.loc['Max PV'] = aggregate_profiles.between_time(pv_generation_hours['start_time'],
+                                                                    pv_generation_hours['end_time'])['PV'].idxmax()
     timepoints.loc['Min Load'] = aggregate_profiles['Load'].idxmin()
     timepoints.loc['Min Daytime Load'] = aggregate_profiles.between_time(pv_generation_hours['start_time'],
                                                                          pv_generation_hours['end_time'])['Load'].idxmin()
