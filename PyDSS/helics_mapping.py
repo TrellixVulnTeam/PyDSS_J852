@@ -50,7 +50,7 @@ class PROPERTY(enum.Enum):
         "vector": False,
         "prefix": "RegulatingControl",
         "suffix": "pos",
-        "unit": "",
+        "unit": "pu",
         "tags" : [
             "phases",
             "federate"
@@ -62,7 +62,7 @@ class PROPERTY(enum.Enum):
         "vector": False,
         "prefix": "RegulatingControl",
         "suffix": "pos",
-        "unit": "",
+        "unit": "pu",
         "tags" : [
             "phases",
             "federate"
@@ -177,18 +177,22 @@ class HELICS_MAPPING:
     @property
     def value(self):
         value = self.obj.GetValue(self.ppty, convert=True)
-        if not isinstance(value.value, list):
+        if self.isVector and not isinstance(value.value, list):
             val = [value.value]
+        elif not self.isVector and isinstance(value.value, list):
+            val = value.value[0]
         else:
             val = value.value
-        
-        # if not self.isVector:
-        #     val = val[0]
         return val
 
     @property
     def isVector(self):
         return self.ppty_data['vector']
+
+    @property
+    def publish(self):
+        
+        return
 
     def __str__(self):
         return "<Publication tag: {}\n units: {},\n dtype: {},\n isVector: {},\n tags: {}\nat {}>\n".format(

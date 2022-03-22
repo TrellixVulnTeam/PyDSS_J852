@@ -1,16 +1,15 @@
-import logging
-from re import L
+from PyDSS.pyContrReader import pyExportReader, pySubscriptionReader
+from PyDSS.simulation_input_models import SimulationSettingsModel
+from PyDSS.export_list_reader import ExportListReader
+from PyDSS.helics_mapping import HELICS_MAPPING
+from PyDSS.pyLogger import getLoggerTag
+from PyDSS.utils.utils import load_data
+from PyDSS.common import ExportMode
 from click import pass_context
+from re import L
+import logging
 import helics
 import os
-from PyDSS.common import ExportMode
-from PyDSS.utils.utils import load_data
-from PyDSS.pyContrReader import pyExportReader, pySubscriptionReader
-from PyDSS.export_list_reader import ExportListReader
-from PyDSS.pyLogger import getLoggerTag
-from PyDSS.simulation_input_models import SimulationSettingsModel
-
-from PyDSS.helics_mapping import HELICS_MAPPING
 
 class helics_interface:
 
@@ -281,19 +280,19 @@ class helics_interface:
                 for obj_name, obj in obj_dict.items():
                     
                     value = obj.GetValue(ppty, convert=True)
-                   
+                    htype = self.get_helics_data_type(value.value)                   
                     names = self.creatPublicationName(obj_name, ppty, value.units)
                     hmap = HELICS_MAPPING(obj, ppty, value, self._settings.helics.federate_name)
-                    print(hmap)
+                    
                     pub_inst = helics.helicsFederateRegisterGlobalTypePublication(
                             self._PyDSSfederate,
                             hmap.pubname,
-                            helics.HELICS_DATA_TYPE_COMPLEX_VECTOR.name,
+                            htype,
                             hmap.units
                         ) 
-                 
                     for k, v in hmap.tags.items():
                         helics.helicsPublicationSetTag(pub=pub_inst, tagname=k, tagvalue=v)
+                    
                     hmap.pub = pub_inst
                     self.sPubs.append(hmap)
                     self._logger.info(f'Publication registered: {hmap.pubname} with units {hmap.units}')
@@ -335,11 +334,49 @@ class helics_interface:
             names.append(name)
         return names
 
+    def get_helics_data_type(self, value):
+        if isinstance(value, float):
+            return helics.HELICS_DATA_TYPE_DOUBLE.name
+        elif isinstance(value, str):
+            return helics.HELICS_DATA_TYPE_STRING.name
+        elif isinstance(value, bool):
+            return helics.HELICS_DATA_TYPE_BOOLEAN.name
+        elif isinstance(value, int):
+            return helics.HELICS_DATA_TYPE_INT.name
+        elif isinstance(value, complex):
+            return helics.HELICS_DATA_TYPE_COMPLEX.name
+        elif isinstance(value, list):
+            if isinstance(value[0], complex):
+                return helics.HELICS_DATA_TYPE_COMPLEX_VECTOR.name
+            else:
+                return helics.HELICS_DATA_TYPE_VECTOR.name
+        else:
+            raise Exception(f"Data type {type(value)} not supported")
+        return
+
     def updateHelicsPublications2(self):
-        for hmap in self.sPubs:
-            print(hmap)
-            print(hmap.value)
-        quit()
+        for helics_map in self.sPubs:
+            value = helics_map.value
+            print(value)
+            
+            if isinstance(value, float):
+                helics.helicsPublicationPublishDouble(helics_map.pub, value)
+            elif isinstance(value, str):
+                helics.helicsPublicationPublishString(helics_map.pub, value)
+            elif isinstance(value, bool):
+                helics.helicsPublicationPublishBoolean(helics_map.pub, value)
+            elif isinstance(value, int):
+                helics.helicsPublicationPublishInteger(helics_map.pub, value)
+            elif isinstance(value, complex):
+                helics.helicsPublicationPublishComplex(helics_map.pub, value)
+            elif isinstance(value, list):
+                if isinstance(value[0], complex):
+                    helics.helicsPublicationPublishComplexVector(helics_map.pub, value)
+                else:
+                    helics.helicsPublicationPublishVector(helics_map.pub, value)
+            
+        print("publications complete")
+        #quit()
         return
 
     def updateHelicsPublications(self):
