@@ -15,6 +15,7 @@ New Line.sw1 bus1=111.1 bus2=111_2.1 switch=y phases=1 length=0.01 units=ft
 New Line.sw2 bus1=112.1 bus2=112_2.1 switch=y phases=1 length=0.01 units=ft 
 New Line.sw3 bus1=113.1 bus2=113_2.1 switch=y phases=1 length=0.01 units=ft
 
+New Capacitor.CAP1 Bus1=110_2.1 kv=0.240 kvar=1 phases=1
 
 New Storage.ESS110 phases=1 Bus1=110_2.1 kv=0.240 ! was .120
 ~ kWRated=7 kVA=9 kWhRated=10 kWhStored=5  !assume ess starting with depleted status

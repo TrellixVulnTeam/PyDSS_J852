@@ -75,8 +75,18 @@ class dssTransformer(dssElement):
                         self._FullName, VarName, VarValue, ['wdg{}'.format(i+1) for i in range(self.NumWindings)]
                     )
                 else:
-                    VarValue = ValueByNumber(self._FullName, VarName, VarValue)
+                    phs ="".join(dict.fromkeys(self.Conductors))
+                    VarValue = ValueByNumber(self._FullName, VarName, VarValue, phases=phs)
 
         else:
             return None
         return VarValue
+
+    @property
+    def Conductors(self):
+        letters = {
+            1 : 'A',
+            2 : 'B',
+            3 : 'C',
+        }     
+        return [letters[i] for i in self._Nodes[0] if i in letters]

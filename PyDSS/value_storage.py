@@ -1,5 +1,6 @@
 
 import abc
+import ast
 import enum
 import logging
 import os
@@ -249,7 +250,7 @@ class ValueByList(ValueStorageBase):
         self._labels = []
         self._value_type = None
         self._value = []
-
+        
     
         assert (isinstance(values, list) and len(values) == len(label_suffixes)), \
             '"values" and "label_suffixes" should be lists of equal lengths'
@@ -319,9 +320,12 @@ class ValueByList(ValueStorageBase):
 
 class ValueByNumber(ValueStorageBase):
     """Stores a list of numbers for an element/property."""
-    def __init__(self, name, prop, value, units=None):
+    def __init__(self, name, prop, value, units=None, phases=None):
         super().__init__()
-        assert not isinstance(value, list), str(value)
+        if isinstance(value, list) and len(value) == 1:
+            value = value[0]
+        
+        assert not isinstance(value, list), f"{type(value)}, {value}"
         self._name = name
         self._prop = prop
         self._value_type = type(value)
@@ -334,26 +338,31 @@ class ValueByNumber(ValueStorageBase):
         self._is_complex = isinstance(value, complex)
         if self._is_complex and units:
             self._units = [{
-                                "phase": "ABC",
+                                "phase": phases,
                                 "terminal": 1,
                                 "unit": units[0],
                                 "type": "complex"
                             }]
         elif not self._is_complex and units:
             self._units = [{
-                                "phase": "ABC",
+                                "phase": phases,
                                 "terminal": 1,
                                 "unit": units[0].strip("[]"),
                                 "type": "real"
                             },
                             {
-                                "phase": "ABC",
+                                "phase": phases,
                                 "terminal": 1,
                                 "unit": units[1].strip("[]"),
                                 "type": "imag"
                             }]
         else:
-            self._units = []
+            self._units = [{
+                                "phase": phases,
+                                "terminal": 1,
+                                "unit": "" if not units else units[0],
+                                "type": "complex" if self._is_complex else "real"
+                            }]
 
     def __iadd__(self, other):
         self._value += other.value

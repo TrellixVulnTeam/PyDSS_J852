@@ -1,0 +1,2 @@
+,Harm,Numsteps,R,XL,basefreq,bus1,bus2,cmatrix,conn,cuf,emergamps,enabled,faultrate,kv,kvar,like,normamps,pctperm,phases,repair,states
+Capacitor.cap1,['0'],1,['0'],['0'],60,110_2.1,110_2.0.0.0,,wye,['46.0518'],7.5,True,0,0.240,['1'],,5.625,100,1,3,['1']

@@ -87,7 +87,8 @@ class dssObjectBase(abc.ABC):
             assert isinstance(value, list), str(value)
             labels = [f"_bus_index_{i}" for i in range(len(value))]
             return ValueByList(self._FullName, VarName, value, labels)
-        return ValueByNumber(self._FullName, VarName, value, units)
+        phs ="".join(dict.fromkeys(self.Conductors))
+        return ValueByNumber(self._FullName, VarName, value, units, phases=phs)
 
     def UpdateValue(self, VarName):
         cachedValue = self._CachedValueStorage.get(VarName)

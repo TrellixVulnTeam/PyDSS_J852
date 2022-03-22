@@ -49,6 +49,9 @@ post_process_infos = []
 
 [Helics]
 "Co-simulation Mode" = true
+"Iterative Mode" = false
+"Error tolerance" = 0.00000001
+"Max co-iterations" = 20
 "Federate name" = "PyDSS"
 "Time delta" = 0.01
 "Core type" = "zmq"

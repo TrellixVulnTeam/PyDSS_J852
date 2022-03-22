@@ -10,6 +10,7 @@ from PyDSS.export_list_reader import ExportListReader
 from PyDSS.pyLogger import getLoggerTag
 from PyDSS.simulation_input_models import SimulationSettingsModel
 
+from PyDSS.helics_mapping import HELICS_MAPPING
 
 class helics_interface:
 
@@ -44,7 +45,9 @@ class helics_interface:
         'Frequency': 'frequency',
         'Taps': 'taps',
         '%stored': 'energy',
-        'Distance': 'distance'
+        'Distance': 'distance',
+        "states": "states",
+        "tap": "tap",
     }
 
     type_info = {
@@ -132,7 +135,6 @@ class helics_interface:
         self._PyDSSfederate = helics.helicsCreateValueFederate(self._settings.helics.federate_name, self.fedinfo)
         return
 
-
     def _registerFederateSubscriptions(self, subs):
         """
         :param subs:
@@ -213,6 +215,7 @@ class helics_interface:
 
     def _registerFederatePublications(self, pubs):
         publicationList = None
+        self.sPubs = []
         if pubs is not None:
             publicationList= pubs
         else:
@@ -278,30 +281,50 @@ class helics_interface:
                 for obj_name, obj in obj_dict.items():
                     
                     value = obj.GetValue(ppty, convert=True)
+                   
                     names = self.creatPublicationName(obj_name, ppty, value.units)
-                    for i, n in enumerate(names):
-                        if not isinstance(value.value, list):
-                            v = value.value
-                        else:
-                            v = value.value[i]
-                        
-                        pubtype = "complex" if isinstance(v, complex) else "double"
-                        unit = value.units[i]["unit"]
-                        pub =  helics.helicsFederateRegisterGlobalTypePublication(
+                    hmap = HELICS_MAPPING(obj, ppty, value, self._settings.helics.federate_name)
+                    print(hmap)
+                    pub_inst = helics.helicsFederateRegisterGlobalTypePublication(
                             self._PyDSSfederate,
-                            n,
-                            pubtype,
-                            unit
-                        )
-                        self._publications[n] = {
-                            "publication": pub,
-                            "value_index": i,
-                            "pydss_object": obj,
-                            "property": ppty,
-                            "type": pubtype,
-                        }
-                        print(f'Publication registered: {n} with units {unit}')
-                        self._logger.info(f'Publication registered: {n} with units {unit}')
+                            hmap.pubname,
+                            helics.HELICS_DATA_TYPE_COMPLEX_VECTOR.name,
+                            hmap.units
+                        ) 
+                 
+                    for k, v in hmap.tags.items():
+                        helics.helicsPublicationSetTag(pub=pub_inst, tagname=k, tagvalue=v)
+                    hmap.pub = pub_inst
+                    self.sPubs.append(hmap)
+                    self._logger.info(f'Publication registered: {hmap.pubname} with units {hmap.units}')
+                   
+                    for i, n in enumerate(names):
+                        
+                        ph_test = n.split("/")[-2]
+                        
+                        if ph_test != "N":
+
+                            if not isinstance(value.value, list):
+                                v = value.value
+                            else:
+                                v = value.value[i]
+                            
+                            pubtype = "complex" if isinstance(v, complex) else "double"
+                            unit = value.units[i]["unit"]
+                            pub =  helics.helicsFederateRegisterGlobalTypePublication(
+                                self._PyDSSfederate,
+                                n,
+                                pubtype,
+                                unit
+                            )
+                            self._publications[n] = {
+                                "publication": pub,
+                                "value_index": i,
+                                "pydss_object": obj,
+                                "property": ppty,
+                                "type": pubtype,
+                            }
+                            self._logger.info(f'Publication registered: {n} with units {unit}')
 
     def creatPublicationName(self, obj_name, ppty, units):
         names = []
@@ -312,8 +335,15 @@ class helics_interface:
             names.append(name)
         return names
 
-    def updateHelicsPublications(self):
+    def updateHelicsPublications2(self):
+        for hmap in self.sPubs:
+            print(hmap)
+            print(hmap.value)
+        quit()
+        return
 
+    def updateHelicsPublications(self):
+        self.updateHelicsPublications2()
         for element, pub_dict in self._publications.items():
             pub = pub_dict["publication"]
             obj = pub_dict["pydss_object"]

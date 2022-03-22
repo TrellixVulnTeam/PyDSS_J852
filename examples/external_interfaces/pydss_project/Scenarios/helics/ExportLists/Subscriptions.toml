@@ -13,3 +13,4 @@ Unit = "kW"
 Subscribe = true
 "Data type" = "double"
 Multiplier = 1 
+

@@ -46,6 +46,10 @@ class dssElement(dssObjectBase):
         "Losses",
     )
 
+    VARIABLE_OUTPUTS_BY_LIST = [
+        'taps'
+    ]
+
     _MAX_CONDUCTORS = 4
 
     def __init__(self, dssInstance):
@@ -133,7 +137,8 @@ class dssElement(dssObjectBase):
         elif VarName in self._Parameters:
             VarValue = self.GetParameter(VarName)
             if convert:
-                VarValue = ValueByNumber(self._FullName, VarName, VarValue)
+                phs = "".join(dict.fromkeys(self.Conductors))
+                VarValue = ValueByNumber(self._FullName, VarName, VarValue, phases=phs)
         else:
             return None
         return VarValue

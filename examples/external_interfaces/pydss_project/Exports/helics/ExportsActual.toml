@@ -3,7 +3,7 @@ property = "Powers"
 data_conversion = "none"
 opendss_classes = []
 sample_interval = 1
-publish = false
+publish = true
 store_values_type = "all"
 sum_elements = false
 sum_groups = []
@@ -23,34 +23,44 @@ property = "Currents"
 data_conversion = "none"
 opendss_classes = []
 sample_interval = 1
-publish = false
+publish = true
 store_values_type = "sum"
 sum_elements = false
 sum_groups = []
 
-[[Lines]]
-property = "NormalAmps"
+[[Buses]]
+property = "Voltages"
 data_conversion = "none"
 opendss_classes = []
 sample_interval = 1
-publish = false
-store_values_type = "sum"
-sum_elements = false
-sum_groups = []
-
-[[Lines]]
-property = "VoltagesMagAng"
-data_conversion = "none"
-opendss_classes = []
-sample_interval = 1
-names = [ "Line.sw1", "Line.sw0",]
-publish = false
+names = [ "113-pv", "111-pv",]
+publish = true
 store_values_type = "all"
 sum_elements = false
 sum_groups = []
 
-[[Lines]]
-property = "CurrentsMagAng"
+[[Vsources]]
+property = "Powers"
+data_conversion = "none"
+opendss_classes = []
+sample_interval = 1
+publish = true
+store_values_type = "all"
+sum_elements = false
+sum_groups = []
+
+[[Capacitors]]
+property = "states"
+data_conversion = "none"
+opendss_classes = []
+sample_interval = 1
+publish = true
+store_values_type = "all"
+sum_elements = false
+sum_groups = []
+
+[[Transformers]]
+property = "tap"
 data_conversion = "none"
 opendss_classes = []
 sample_interval = 1

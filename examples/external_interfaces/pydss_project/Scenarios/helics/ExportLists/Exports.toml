@@ -1,7 +1,7 @@
 [[Loads]]
 property = "Powers"
 sample_interval = 1
-publish = false
+publish = true
 store_values_type = "all"
 
 [[Circuits]]
@@ -12,29 +12,33 @@ store_values_type = "all"
 
 [[Lines]]
 property = "Currents"
-sample_interval = 1
-publish = false
-store_values_type = "sum"
-
-[[Lines]]
-property = "NormalAmps"
-sample_interval = 1
-publish = false
-store_values_type = "sum"
-
-[[Lines]]
-property = "VoltagesMagAng"
-sample_interval = 1
-names = ["Line.sw0", "Line.sw1"]
-publish = false
-store_values_type = "all"
-
-[[Lines]]
-property = "CurrentsMagAng"
 name_regexes = ["Line.sw"]
+sample_interval = 1
+publish = true
+store_values_type = "sum"
+
+[[Buses]]
+property = "Voltages"
+names = ["111-pv", "113-pv"]
 sample_interval = 1
 publish = true
 store_values_type = "all"
 
+[[Vsources]]
+property = "Powers"
+sample_interval = 1
+publish = true
+store_values_type = "all"
 
+[[Capacitors]]
+property = "states"
+sample_interval = 1
+publish = true
+store_values_type = "all"
+
+[[Transformers]]
+property = "tap"
+sample_interval = 1
+publish = true
+store_values_type = "all"
 
