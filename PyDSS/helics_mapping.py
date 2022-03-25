@@ -38,7 +38,7 @@ class PROPERTY(enum.Enum):
         "type": "complex",
         "vector": True,
         "prefix": "ACLineSegment",
-        "suffix": "I",
+        "suffix": "A",
         "unit": "A",
         "tags" : [
             "phases",
@@ -203,7 +203,3 @@ class HELICS_MAPPING:
             self.tags,
             hex(id(self))
         )
-
-# #print(PROPERTY.Power.value)
-# a = HELICS_MAPPING()
-# print(a.publication_map)

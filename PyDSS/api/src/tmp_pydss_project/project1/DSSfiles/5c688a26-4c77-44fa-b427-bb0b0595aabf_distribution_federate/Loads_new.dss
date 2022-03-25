@@ -1,0 +1,2 @@
+New Load.load_p6ulv25062 conn=wye bus1=p6ulv25062.1.2.3 kV=0.48 Vminpu=0.8 Vmaxpu=1.2 model=1 kva=1.59002 pf=1.0 Phases=3
+New Load.load_p6ulv25063 conn=wye bus1=p6ulv25063.1.2.3 kV=0.48 Vminpu=0.8 Vmaxpu=1.2 model=1 kva=1.22001 pf=1.0 Phases=3

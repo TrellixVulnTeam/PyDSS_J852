@@ -1,0 +1,8 @@
+New Load.motor_load_p6ulv23853 conn=wye bus1=p6ulv23853.1.2.3 kV=0.48 kW=1.2043771864943191 kvar=0.24087543729886385 Phases=3 Vminpu=0.0 Vmaxpu=1.2 model=1
+New Load.motor_load_p6ulv23856 conn=wye bus1=p6ulv23856.1.2.3 kV=0.48 kW=1.0773471308781162 kvar=0.21546942617562326 Phases=3 Vminpu=0.0 Vmaxpu=1.2 model=1
+New Load.motor_load_p6ulv23857 conn=wye bus1=p6ulv23857.1.2.3 kV=0.48 kW=1.1132597934285031 kvar=0.22265195868570065 Phases=3 Vminpu=0.0 Vmaxpu=1.2 model=1
+New Load.motor_load_p6ulv23859 conn=wye bus1=p6ulv23859.1.2.3 kV=0.48 kW=1.2616937659624896 kvar=0.25233875319249793 Phases=3 Vminpu=0.0 Vmaxpu=1.2 model=1
+New Load.motor_load_p6ulv23861 conn=wye bus1=p6ulv23861.1.2.3 kV=0.48 kW=1.1797640160160978 kvar=0.23595280320321957 Phases=3 Vminpu=0.0 Vmaxpu=1.2 model=1
+New Load.motor_load_p6ulv23868 conn=wye bus1=p6ulv23868.1.2.3 kV=0.48 kW=1.179583074802085 kvar=0.23591661496041702 Phases=3 Vminpu=0.0 Vmaxpu=1.2 model=1
+New Load.motor_load_p6ulv26743 conn=wye bus1=p6ulv26743.1.2.3 kV=0.48 kW=1.2507766592023595 kvar=0.2501553318404719 Phases=3 Vminpu=0.0 Vmaxpu=1.2 model=1
+New Load.motor_load_p6ulv26747 conn=wye bus1=p6ulv26747.1.2.3 kV=0.48 kW=1.1244889202026673 kvar=0.22489778404053348 Phases=3 Vminpu=0.0 Vmaxpu=1.2 model=1

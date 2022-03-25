@@ -1,28 +1,19 @@
 [Project]
 "Start time" = "2020-1-1 00:00:00.0"
-"Simulation duration (min)" = 30
+"Simulation duration (min)" = 1
 "Loadshape start time" = "2020-1-1 00:00:00.0"
-"Step resolution (sec)" = 60.0
+"Step resolution (sec)" = 1
 "Max Control Iterations" = 50
 "Error tolerance" = 0.001
 "Control mode" = "Static"
 "Disable PyDSS controllers" = false
 "Simulation Type" = "QSTS"
-"Project Path" = "./examples/external_interfaces"
+"Project Path" = "C:/Users/alatif/Documents/GitHub/PyDSS/examples/external_interfaces"
 "Active Project" = "pydss_project"
 "Active Scenario" = ""
 "DSS File" = "Master_Spohn_existing_VV.dss"
 "DSS File Absolute Path" = false
 "Return Results" = false
-
-# [[Project.Scenarios]]
-# name = "helics"
-# post_process_infos = []
-
-# [[Project.Scenarios]]
-# name = "python"
-# post_process_infos = []
-
 [[Project.Scenarios]]
 name = "helics"
 post_process_infos = []
@@ -50,13 +41,13 @@ post_process_infos = []
 [Helics]
 "Co-simulation Mode" = true
 "Iterative Mode" = false
-"Error tolerance" = 0.00000001
+"Error tolerance" = 1e-8
 "Max co-iterations" = 20
-"Federate name" = "PyDSS"
-"Time delta" = 0.01
-"Core type" = "zmq"
-"Broker" = "127.0.0.1"
-"Broker port" = 23404
+"Federate name" = "pydss_1"
+"Time delta" = 1
+"Core type" = "ZMQ"
+Broker = "127.0.0.1"
+"Broker port" = 50000
 Uninterruptible = true
 "Helics logging level" = 5
 

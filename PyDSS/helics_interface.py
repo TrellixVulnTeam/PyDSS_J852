@@ -283,7 +283,7 @@ class helics_interface:
                     htype = self.get_helics_data_type(value.value)                   
                     names = self.creatPublicationName(obj_name, ppty, value.units)
                     hmap = HELICS_MAPPING(obj, ppty, value, self._settings.helics.federate_name)
-                    
+                    print(hmap)
                     pub_inst = helics.helicsFederateRegisterGlobalTypePublication(
                             self._PyDSSfederate,
                             hmap.pubname,
@@ -356,9 +356,7 @@ class helics_interface:
 
     def updateHelicsPublications2(self):
         for helics_map in self.sPubs:
-            value = helics_map.value
-            print(value)
-            
+            value = helics_map.value    
             if isinstance(value, float):
                 helics.helicsPublicationPublishDouble(helics_map.pub, value)
             elif isinstance(value, str):
@@ -374,9 +372,6 @@ class helics_interface:
                     helics.helicsPublicationPublishComplexVector(helics_map.pub, value)
                 else:
                     helics.helicsPublicationPublishVector(helics_map.pub, value)
-            
-        print("publications complete")
-        #quit()
         return
 
     def updateHelicsPublications(self):
@@ -431,8 +426,11 @@ class helics_interface:
                 return True, self.c_seconds
 
     def __del__(self):
-        helics.helicsFederateFinalize(self._PyDSSfederate)
-        state = helics.helicsFederateGetState(self._PyDSSfederate)
-        helics.helicsFederateInfoFree(self.fedinfo)
-        helics.helicsFederateFree(self._PyDSSfederate)
-        self._logger.info('HELICS federate for PyDSS destroyed')
+        try:
+            helics.helicsFederateFinalize(self._PyDSSfederate)
+            state = helics.helicsFederateGetState(self._PyDSSfederate)
+            helics.helicsFederateInfoFree(self.fedinfo)
+            helics.helicsFederateFree(self._PyDSSfederate)
+            self._logger.info('HELICS federate for PyDSS destroyed')
+        except:
+            pass

@@ -1,44 +1,38 @@
-[[Loads]]
-property = "Powers"
-sample_interval = 1
-publish = true
-store_values_type = "all"
-
 [[Circuits]]
-property = "TotalPower"
-sample_interval = 1
 publish = true
+sample_interval = 1
 store_values_type = "all"
+property = "TotalPower"
 
 [[Lines]]
-property = "Currents"
-name_regexes = ["Line.sw"]
-sample_interval = 1
 publish = true
-store_values_type = "sum"
+sample_interval = 1
+store_values_type = "all"
+name_regexes = [ "Line.sw",]
+property = "Currents"
+
+[[Loads]]
+publish = true
+sample_interval = 1
+store_values_type = "all"
+property = "Powers"
 
 [[Buses]]
+publish = true
+sample_interval = 1
+store_values_type = "all"
+names = [ "111-pv", "113-pv",]
 property = "Voltages"
-names = ["111-pv", "113-pv"]
-sample_interval = 1
-publish = true
-store_values_type = "all"
-
-[[Vsources]]
-property = "Powers"
-sample_interval = 1
-publish = true
-store_values_type = "all"
 
 [[Capacitors]]
-property = "states"
-sample_interval = 1
 publish = true
+sample_interval = 1
 store_values_type = "all"
+property = "states"
 
 [[Transformers]]
-property = "tap"
-sample_interval = 1
 publish = true
+sample_interval = 1
 store_values_type = "all"
+property = "tap"
 
