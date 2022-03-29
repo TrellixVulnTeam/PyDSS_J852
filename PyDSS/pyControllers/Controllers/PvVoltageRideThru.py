@@ -6,6 +6,8 @@ import datetime
 import math
 import os
 
+debug = True
+
 class PvVoltageRideThru(ControllerAbstract):
     """Implementation of IEEE1547-2003 and IEEE1547-2018 voltage ride-through standards using the OpenDSS Generator model. Subclass of the :class:`PyDSS.pyControllers.pyControllerAbstract.ControllerAbstract` abstract class.
 
@@ -106,6 +108,9 @@ class PvVoltageRideThru(ControllerAbstract):
         self.reactive_power = [0.0 for i in range(hist_size)]
         self.__VoltVioM = False
         self.__VoltVioP = False
+        if debug:
+            self.voltage_history = []
+            self.timer_history = []
         return
 
     def Name(self):
@@ -238,7 +243,7 @@ class PvVoltageRideThru(ControllerAbstract):
         return V, T
 
     def Update(self, Priority, Time, Update):
-
+        
         Error = 0
         self.TimeChange = self.Time != (Priority, Time)
         self.Time = Time
@@ -247,15 +252,44 @@ class PvVoltageRideThru(ControllerAbstract):
         # if self.__isConnected:
         #     Error = self.update[Priority]()
         if Priority == 2:
-            uIn = self.__UpdateViolatonTimers()
+            uIn, fault_time = self.__UpdateViolatonTimers()
+            if debug:
+                self.voltage_history.append(uIn)
+                self.timer_history.append(fault_time)
+            
+            
             if self.__Settings["Follow standard"] == "1547-2018":
                 self.VoltageRideThrough(uIn)
             elif self.__Settings["Follow standard"] == "1547-2003":
                 self.Trip(uIn)
             else:
                 raise Exception("Valid standard setting defined. Options are: 1547-2003, 1547-2018")
+            
+
+            if self.__dssSolver.isLastTimestep and debug:
+                import matplotlib.pyplot as plt
+                fig, ax = plt.subplots()
+                ax.set_xscale('log')
+                ax.set_xlabel('Time [s]')
+                ax.set_ylabel('Voltage [p.u.]')
+                ax.set_title(self.ControlledElement())
+                self.plot_patch(ax, self.CurrLimRegion, 'g')
+                if self.MomentarySucessionRegion:
+                    self.plot_patch(ax,self.MomentarySucessionRegion, 'b')
+                self.plot_patch(ax, self.TripRegion, 'r')
+                
+                ax.scatter(self.timer_history, self.voltage_history)
+                ax.set_xlim([0,100])
+                ax.set_ylim([0,1.2])
+                
+                plt.show()
 
         return Error
+    
+    def plot_patch(self, axs, multi_polygon, color):
+        for geom in multi_polygon.geoms:    
+            xs, ys = geom.exterior.xy    
+            axs.fill(xs, ys, alpha=0.5, fc=color, ec='none')
 
     def Trip(self, uIn):
         """ Implementation of the IEEE1587-2003 voltage ride-through requirements for inverter systems
@@ -356,4 +390,4 @@ class PvVoltageRideThru(ControllerAbstract):
                 self.__uViolationtime = 0
             else:
                 self.__uViolationtime = (self.__dssSolver.GetDateTime() - self.__uViolationstartTime).total_seconds()
-        return uIn
+        return uIn, self.__uViolationtime

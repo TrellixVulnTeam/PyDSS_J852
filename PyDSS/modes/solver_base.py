@@ -88,3 +88,16 @@ class solver_base:
 
     def IncStep(self):
         raise Exception("Implement the 'IncStep' function in the child class")
+    
+    def GetSimulationEndTimeSeconds(self):
+        return (self._EndTime - self._StartTime).total_seconds()
+    
+    @property
+    def isLastTimestep(self):
+        if self.GetTotalSeconds() + self.GetStepResolutionSeconds() >= self.GetSimulationEndTimeSeconds():
+            return True
+        return False
+    
+    @property
+    def allTimestamps(self):
+        return [self._StartTime + timedelta(seconds= n * self.GetStepResolutionSeconds()) for n in range(self.Steps)]
