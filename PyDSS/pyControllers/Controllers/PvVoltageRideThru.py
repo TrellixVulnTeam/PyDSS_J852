@@ -109,8 +109,10 @@ class PvVoltageRideThru(ControllerAbstract):
         self.__VoltVioM = False
         self.__VoltVioP = False
         if debug:
-            self.voltage_history = []
+            self.time_history = []
+            self.power_history = []
             self.timer_history = []
+            self.voltage_history = []
         return
 
     def Name(self):
@@ -256,8 +258,10 @@ class PvVoltageRideThru(ControllerAbstract):
             if debug:
                 self.voltage_history.append(uIn)
                 self.timer_history.append(fault_time)
-            
-            
+                self.time_history.append(Time * self.__dssSolver.GetStepResolutionSeconds())
+                power = sum(self._ControlledElm.GetVariable('Powers')[::2])
+                self.power_history.append(power)
+                
             if self.__Settings["Follow standard"] == "1547-2018":
                 self.VoltageRideThrough(uIn)
             elif self.__Settings["Follow standard"] == "1547-2003":
@@ -265,22 +269,28 @@ class PvVoltageRideThru(ControllerAbstract):
             else:
                 raise Exception("Valid standard setting defined. Options are: 1547-2003, 1547-2018")
             
-
             if self.__dssSolver.isLastTimestep and debug:
                 import matplotlib.pyplot as plt
-                fig, ax = plt.subplots()
-                ax.set_xscale('log')
-                ax.set_xlabel('Time [s]')
-                ax.set_ylabel('Voltage [p.u.]')
-                ax.set_title(self.ControlledElement())
-                self.plot_patch(ax, self.CurrLimRegion, 'g')
+                fig, axs = plt.subplots(2, 1)
+    
+                axs[0].set_xscale('log')
+                axs[0].set_xlabel('Time [s]')
+                axs[0].set_ylabel('Voltage [p.u.]')
+                axs[0].set_title(self.ControlledElement())
+                self.plot_patch(axs[0], self.CurrLimRegion, 'g')
                 if self.MomentarySucessionRegion:
-                    self.plot_patch(ax,self.MomentarySucessionRegion, 'b')
-                self.plot_patch(ax, self.TripRegion, 'r')
+                    self.plot_patch(axs[0],self.MomentarySucessionRegion, 'b')
+                self.plot_patch(axs[0], self.TripRegion, 'r')
                 
-                ax.scatter(self.timer_history, self.voltage_history)
-                ax.set_xlim([0,100])
-                ax.set_ylim([0,1.2])
+                axs[0].scatter(self.timer_history, self.voltage_history)
+                axs[0].set_xlim([0,100])
+                axs[0].set_ylim([0,1.2])
+                
+                
+                axs[1].set_xlabel('Simulation time [s]')
+                axs[1].set_ylabel('Power [kW]')
+                #axs[1].set_title(self.ControlledElement())
+                axs[1].plot(self.time_history, self.power_history)
                 
                 plt.show()
 
