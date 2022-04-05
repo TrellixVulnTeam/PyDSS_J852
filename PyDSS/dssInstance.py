@@ -16,6 +16,8 @@ from PyDSS.dssBus import dssBus
 from PyDSS import SolveMode
 from PyDSS import pyLogger
 
+import traceback
+
 import opendssdirect as dss
 import numpy as np
 import logging
@@ -458,14 +460,8 @@ class OpenDSS:
             self._pyPlotObjects[Plot].UpdatePlot()
         return
 
-    # def __del__(self):
-    #     self._Logger.info('An instance of OpenDSS (' + str(self) + ') has been deleted.')
-    #     loggers = [self._Logger, self._reportsLogger]
-    #     if self._Options["Logging"]["Log to external file"]:
-    #         for L in loggers:
-    #             handlers = list(L.handlers)
-    #             for filehandler in handlers:
-    #                 filehandler.flush()
-    #                 filehandler.close()
-    #                 L.removeHandler(filehandler)
-    #     return
+    def __del__(self):
+        try:
+            self._Logger.error(traceback.format_exc())
+        except:
+            pass
