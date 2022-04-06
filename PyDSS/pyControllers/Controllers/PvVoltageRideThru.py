@@ -286,12 +286,9 @@ class PvVoltageRideThru(ControllerAbstract):
                 axs[0].set_xlim([0,100])
                 axs[0].set_ylim([0,1.2])
                 
-                
                 axs[1].set_xlabel('Simulation time [s]')
                 axs[1].set_ylabel('Power [kW]')
-                #axs[1].set_title(self.ControlledElement())
-                axs[1].plot(self.time_history, self.power_history)
-                
+                axs[1].plot(self.time_history[1:], self.power_history[1:])
                 plt.show()
 
         return Error
@@ -312,7 +309,7 @@ class PvVoltageRideThru(ControllerAbstract):
     def VoltageRideThrough(self, uIn):
         """ Implementation of the IEEE1587-2018 voltage ride-through requirements for inverter systems
         """
-        self.__faultCounterClearingTimeSec = 1
+        #self.__faultCounterClearingTimeSec = 1
 
         Pm = Point(self.__uViolationtime, uIn)
         if Pm.within(self.CurrLimRegion):
