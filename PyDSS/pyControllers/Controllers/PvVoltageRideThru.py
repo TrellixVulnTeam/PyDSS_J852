@@ -271,10 +271,10 @@ class PvVoltageRideThru(ControllerAbstract):
             
             if self.__dssSolver.isLastTimestep and debug:
                 import matplotlib.pyplot as plt
-                fig, axs = plt.subplots(2, 1)
+                fig, axs = plt.subplots(3, 1)
     
                 axs[0].set_xscale('log')
-                axs[0].set_xlabel('Time [s]')
+                axs[0].set_xlabel('Fault timer [s]')
                 axs[0].set_ylabel('Voltage [p.u.]')
                 axs[0].set_title(self.ControlledElement())
                 self.plot_patch(axs[0], self.CurrLimRegion, 'g')
@@ -289,6 +289,12 @@ class PvVoltageRideThru(ControllerAbstract):
                 axs[1].set_xlabel('Simulation time [s]')
                 axs[1].set_ylabel('Power [kW]')
                 axs[1].plot(self.time_history[1:], self.power_history[1:])
+                
+                axs[2].set_xscale('log')
+                axs[2].set_xlabel('Fault timer [s]')
+                axs[2].set_ylabel('Power [kW]')
+                axs[2].plot(self.timer_history[1:], self.power_history[1:])
+                
                 plt.show()
 
         return Error
@@ -309,8 +315,6 @@ class PvVoltageRideThru(ControllerAbstract):
     def VoltageRideThrough(self, uIn):
         """ Implementation of the IEEE1587-2018 voltage ride-through requirements for inverter systems
         """
-        #self.__faultCounterClearingTimeSec = 1
-
         Pm = Point(self.__uViolationtime, uIn)
         if Pm.within(self.CurrLimRegion):
             isinContioeousRegion = False
