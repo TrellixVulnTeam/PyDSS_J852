@@ -151,7 +151,7 @@ class helics_interface:
                 elif sub_info['Data type'].lower() == 'integer':
                     value = helics.helicsInputGetInteger(sub_info['Subscription'])
 
-                if value and value != 0:
+                if value and value != 0 and abs(value) < 1e8:
                     value = value * sub_info['Multiplier']
 
                     dssElement = self._objects_by_element[element_name]
