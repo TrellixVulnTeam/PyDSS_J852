@@ -3,6 +3,7 @@ import logging
 
 import shutil
 import asyncio
+from turtle import pos
 from uuid import uuid4
 from aiohttp import web
 from PyDSS.api.src.app.pydss import PyDSS
@@ -289,8 +290,11 @@ class Handler:
 
         if code == HTTPStatus.OK:
 
-            response = update_project(
+            response_content, success = update_project(
                 post_request_body['smartds_feeder_uuids'],
+                post_request_body['loadflow_vpu'],
+                post_request_body['loadflow_active_power'],
+                post_request_body['loadflow_reactive_power'],
                 post_request_body['bes_load_mw'],
                 post_request_body['bes_load_mvar'],
                 post_request_body['der_mw'],
@@ -301,7 +305,17 @@ class Handler:
                 post_request_body['inverter_standards'],
                 True,
                 True
-            )
+            ) 
+            
+            if success:
+                return web.Response(
+                            body=response_content,
+                            headers= {'Content-Type': 'application/octet-stream',
+                                'Content-Disposition' : f"attachement; filename=pydss_model.zip"},
+                            status=200
+                        )
+            else:
+                return web.json_response({"message": response_content}, status=500)
 
         return web.json_response(response, status=code)
 

@@ -64,7 +64,7 @@
     },
     "source_voltage": {
       "type": "number",
-      "description": "The message bus type used in HELICS (zeromq [\"zmq\"] is recommended)",
+      "description": "The source voltage in kV for SMARTDS substation modelling",
       "default": 33,
       "example": 0,
       "minimum": 0
@@ -110,11 +110,25 @@
         "ieee-2018-catIII",
         "ieee-2003"
       ]
+    },
+    "loadflow_vpu": {
+      "type": "number",
+      "description": "PU voltage of the load bus in PSSE"
+    },
+    "loadflow_active_power": {
+      "type": "number",
+      "description": "Actual load power in MW after powerflow"
+    },
+    "loadflow_reactive_power": {
+      "type": "number",
+      "description": "Actual Load MVAR after performing a powerflow"
     }
   },
   "required": [
     "smartds_feeder_uuids",
     "bes_load_mw",
-    "bes_load_mvar"
+    "bes_load_mvar",
+    "loadflow_vpu",
+    "loadflow_active_power"
   ]
 }

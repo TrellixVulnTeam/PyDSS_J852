@@ -15,7 +15,7 @@ from naerm_core.web.client_requests import send_sync_request
 from naerm_core.notification.notifier import Notifier
 import json
 from http import HTTPStatus
-from zipfile import ZipFile
+from zipfile import ZipFile, ZIP_DEFLATED
 import re
 import shutil
 import toml
@@ -239,26 +239,36 @@ def update_project(
         print("P multiplier: ", pmult)
         print("Q multiplier: ", qmult)
         
-        powerflow_options = {
-            'pydss_project': pydss_model_folder,
+        metadata = {
             'active_project': project,
             'active_scenario': scenario,
             'master_dss_file': master_file, #file_data['case']['master_file']
-            'master_dss_file': master_file, #file_data['case']['master_file']
+            "mw_multiplier": pmult,
+            "mvar_multiplier": qmult
         }
 
+        with open(os.path.join(pydss_model_folder, 'metadata.json'), "w") as f:
+            json.dump(metadata, f)
+
+
+        with ZipFile(os.path.join( tmp_folder, 'tmp_pydss_project.zip' ), 'w', ZIP_DEFLATED) as zipf:
+            for root, dirs, files in os.walk(pydss_model_folder):
+                for file in files:
+                    zipf.write(os.path.join(root, file), arcname='.' + os.path.join(root, file).replace(pydss_model_folder, ''))
+        
+        with open(os.path.join(tmp_folder, 'tmp_pydss_project.zip'), 'rb') as f:
+            file_content = f.read()
+
+        # shutil.rmtree(tmp_folder)
+        # shutil.rmtree(pydss_model_folder)
+
+        return (file_content, True)
 
     except Exception as e:
         logger.error(f'Error updating the PyDSS project >> {e}')
-        return {}
+        return (f'Error updating the PyDSS project >> {e}', False)
 
     # TODO: validate pydss project skeleton
-
-    return {
-        "powerflow_options": powerflow_options,
-        "mw_multiplier": pmult,
-        "mvar_multiplier": qmult
-    }
 
 
 
@@ -301,5 +311,6 @@ if __name__ == '__main__':
         1.032, 20, 3, 20, 3, 4, 0, 33, 'https://api.naerm.team/data/bes', 30,
         {"ieee-2018-catI": 5, "ieee-2018-catII": 10, "ieee-2018-catIII": 15, "ieee-2003": 20}
     )
+
     print(a)
 

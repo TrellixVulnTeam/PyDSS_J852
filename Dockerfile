@@ -1,25 +1,20 @@
-FROM python:3.7.0-slim
+# FROM ${naerm_core_image_name}:${naerm_core_image_tag}
+ARG naerm_core_image_name=harbor.naerm.team/naerm-images/naerm_core
+ARG naerm_core_image_tag=1.26.0
+
+FROM ${naerm_core_image_name}:${naerm_core_image_tag}
 
 RUN apt-get update
 
 RUN apt-get -y install libgeos-dev
 
-# Copy the source code
-COPY . /PyDSS
 
-# Change directory to the src folder
-WORKDIR /PyDSS
+COPY . /PyDSS
 
 RUN pip install --upgrade pip
 RUN pip install --upgrade setuptools
-#RUN pip install --upgrade setuptools
 
-RUN pip install https://gitlab.naerm.team/arch/naerm_core.git
-
-# RUN pip install --index-url https://pypi.naerm.team/simple/ \
-#                 -r requirements.txt
-
-# Install the python modules
+WORKDIR /PyDSS
 RUN pip install -e .
 
 ENV PYTHONPATH=/PyDSS/PyDSS/api/src
