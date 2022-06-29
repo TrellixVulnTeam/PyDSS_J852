@@ -40,27 +40,22 @@ class ModelGenerator:
         motorkW = 0
         if len(lineData) > 1:
             phases = self.findPpty("Phases", lineData, int)
-            if phases == 2:
+            if phases != 2:
                 ld = lineData[1].replace("Load.", "")
                 MotorName = f"Load.motor_{ld}"
                 kv = self.findPpty("kV", lineData, float)
-                motorkv = kv / 1.732 * 2
                 conn = self.findPpty("conn", lineData)
                 kW = self.findPpty("kW", lineData, float)
                 loadkW = (1 - MotorSize / 100.0) * kW
-                motorkW = MotorSize / 100.0 * kW
-                kvar = self.findPpty("kvar", lineData, float)
-                loadkvar = kvar - 0.2 * motorkW
-                motorkvar = 0.2 * motorkW
+                MotorSize = MotorSize + random.random() * 0.2 * MotorSize
+                motorkvar = 0.2 * MotorSize
                 bus = self.findPpty("bus1", lineData)
-                mdl = f"New {MotorName} conn={conn} bus1={bus} kV={kv} kW={motorkW} kvar={motorkvar} Phases=2 Vminpu=0.0 Vmaxpu=1.2 model=1\n"
-                self.handleMotorFile.write(mdl)
-                mdl = f"New {lineData[1]} conn={conn} bus1={bus} kV={kv} kW={loadkW} kvar={loadkvar} Phases=2 Vminpu=0.8 Vmaxpu=1.2 model=1\n"
+                mdl = f"New {MotorName} conn={conn} bus1={bus} kV={kv} kW={MotorSize} kvar={motorkvar} Phases={phases} Vminpu=0.0 Vmaxpu=1.2 model=1\n"
                 self.handleMotorFile.write(mdl)
                 self.Motors[scenarioName][MotorName] = (motorkW, motorkvar)
-            else:
-                self.handleMotorFile.write(line + "\n")
-                loadkW = self.findPpty("kW", lineData, float)
+            # else:
+            #     self.handleMotorFile.write(line + "\n")
+            #     loadkW = self.findPpty("kW", lineData, float)
         return loadkW + motorkW
 
     def createPVsystem(self, line, PVsize, scenarioName):
@@ -82,18 +77,24 @@ class ModelGenerator:
                 phases = 1
             PVname = f"Generator.pv_{gen}"
             mdl = f"New {PVname} conn={conn} bus1={bus} kV={kv} model=7 kW={pv_kva} kvar={pv_kvar} Phases={phases}\n"
-            self.handlePVsystemFile.write(mdl)
-            self.PVsystems[scenarioName].append(PVname)
+            if pv_kva:
+                self.handlePVsystemFile.write(mdl)
+                self.PVsystems[scenarioName].append(PVname)
         return pv_kva
 
     def GenerateScenario(self, PV_penetration, PVsize, motor_load_penetration, MotorSize, FileTypes):
+     
         for feeder in self.paths:
             scenarioName = feeder.split("\\")[-1]
             self.Motors[scenarioName] = {}
             self.PVsystems[scenarioName] = []
+            new_load_file = os.path.join(feeder, FileTypes["new_loads"])
+            print(new_load_file)
             load_file = os.path.join(feeder, FileTypes["load"])
             motor_file = os.path.join(feeder, FileTypes["motor"])
             PV_file = os.path.join(feeder, FileTypes["PVsystem"])
+            self.handlenewLoadsFile = open(new_load_file, "w")
+            print(new_load_file)
             self.handleMotorFile = open(motor_file, "w")
             self.handlePVsystemFile = open(PV_file, "w")
             totalLoad = 0
@@ -101,8 +102,13 @@ class ModelGenerator:
             with open(load_file, 'r') as f:
                 for line in f:
                     if random.random() < motor_load_penetration:
+                        print("motor_load_penetration: ", motor_load_penetration)
                         Motors = self.createMotor(line, MotorSize, scenarioName)
+                        
                         totalLoad += Motors
+                    else:
+                        self.handlenewLoadsFile.write(line)
+                        
                     if random.random() < PV_penetration:
                         PVsystems = self.createPVsystem(line, PVsize, scenarioName)
                         totalGeneration += PVsystems
@@ -110,6 +116,8 @@ class ModelGenerator:
             self.handleMotorFile.close()
             self.handlePVsystemFile.flush()
             self.handlePVsystemFile.close()
+            self.handlenewLoadsFile.flush()
+            self.handlenewLoadsFile.close()
             self.createMasterFile(feeder, FileTypes)
             if self.subpath:
                 self.createMasterFile(self.subpath, FileTypes)
@@ -120,24 +128,29 @@ class ModelGenerator:
 
         f = open(masterFile, "r")
         contents = f.readlines()
-        new_contents = copy.copy(contents)
+        new_contents = []
         f.close()
         for i, line in enumerate(contents):
+   
             if line.endswith('Loads.dss\n'):
+                new_line = line.replace('Loads.dss', "Loads_new.dss")
+                new_contents.append(new_line)
                 new_line = line.replace('Loads.dss', FileTypes["motor"])
-                new_contents.insert(i, new_line)
+                new_contents.append(new_line)
                 new_line = line.replace('Loads.dss', FileTypes["PVsystem"])
-                new_contents.insert(i+1, new_line)
-            if line.startswith('Set Voltagebases'):
-                new_contents.insert(i+2, 'BatchEdit Fuse.. enabled = false\n')
-
-        xContents = []
-        for i, line in enumerate(new_contents):
-            if not ("Loads.dss" in line or "PVSystems.dss" in line):
-                xContents.append(line)
+                new_contents.append(new_line)
+            elif line.startswith('Set Voltagebases'):
+                new_contents.append(line)
+                new_contents.append('BatchEdit Fuse.. enabled = false\n')
+            else:
+                new_contents.append(line)
+        # xContents = []
+        # for i, line in enumerate(new_contents):
+        #     if not ("Loads.dss" in line or "PVSystems.dss" in line):
+        #         xContents.append(line)
 
         f = open(newMasterFile, "w")
-        new_contents = "".join(xContents)
+        new_contents = "".join(new_contents)
         f.write(new_contents)
         f.close()
 
